@@ -1,0 +1,32 @@
+{
+  "name": "Microsservicos com Lambda",
+  "description": "Arquitetura de microsservicos combinando EC2 para servicos pesados e Lambda para handlers leves.",
+  "base_region": "us-east-1",
+  "components": [
+    {
+      "type": "ec2",
+      "instance": "m5.xlarge",
+      "hours": 730,
+      "cpu": 0.50,
+      "os": "Linux",
+      "note": "Servico principal — processamento pesado"
+    },
+    {
+      "type": "lambda",
+      "invocations": 20000000,
+      "duration_ms": 80,
+      "memory_mb": 256,
+      "architecture": "x86",
+      "note": "Auth, notificacoes, eventos — 20M inv/mes"
+    },
+    {
+      "type": "rds",
+      "instance": "db.m5.large",
+      "hours": 730,
+      "cpu": 0.40,
+      "engine": "MySQL",
+      "multi_az": true,
+      "note": "Banco principal Multi-AZ"
+    }
+  ]
+}

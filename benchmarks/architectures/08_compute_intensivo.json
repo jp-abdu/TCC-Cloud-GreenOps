@@ -1,0 +1,31 @@
+{
+  "name": "Aplicacao Compute Intensiva",
+  "description": "Renderizacao, encoding ou simulacao cientifica. CPU maxima, sem banco de dados relacional.",
+  "base_region": "us-east-1",
+  "components": [
+    {
+      "type": "ec2",
+      "instance": "c5.4xlarge",
+      "hours": 730,
+      "cpu": 0.90,
+      "os": "Linux",
+      "note": "Worker principal — compute optimized, alta CPU"
+    },
+    {
+      "type": "ec2",
+      "instance": "c5.4xlarge",
+      "hours": 730,
+      "cpu": 0.90,
+      "os": "Linux",
+      "note": "Worker secundario"
+    },
+    {
+      "type": "lambda",
+      "invocations": 1000000,
+      "duration_ms": 30,
+      "memory_mb": 128,
+      "architecture": "x86",
+      "note": "Job scheduler e callbacks"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Data Warehouse e Analytics",
+  "description": "Pipeline de analytics com processamento pesado de dados. Alta CPU, memoria intensiva.",
+  "base_region": "us-east-1",
+  "components": [
+    {
+      "type": "ec2",
+      "instance": "r5.2xlarge",
+      "hours": 730,
+      "cpu": 0.65,
+      "os": "Linux",
+      "note": "Servidor de analytics — memory optimized"
+    },
+    {
+      "type": "ec2",
+      "instance": "c5.xlarge",
+      "hours": 730,
+      "cpu": 0.70,
+      "os": "Linux",
+      "note": "ETL processor"
+    },
+    {
+      "type": "rds",
+      "instance": "db.r5.large",
+      "hours": 730,
+      "cpu": 0.50,
+      "engine": "PostgreSQL",
+      "multi_az": true,
+      "note": "Data store principal"
+    },
+    {
+      "type": "lambda",
+      "invocations": 500000,
+      "duration_ms": 500,
+      "memory_mb": 1024,
+      "architecture": "x86",
+      "note": "Triggers de ingestao de dados"
+    }
+  ]
+}

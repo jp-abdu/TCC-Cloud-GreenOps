@@ -1,0 +1,24 @@
+{
+  "name": "Pipeline Batch Noturno",
+  "description": "Processamento batch que roda 8 horas por dia. Alta CPU durante execucao, idle o resto do tempo.",
+  "base_region": "us-east-1",
+  "components": [
+    {
+      "type": "ec2",
+      "instance": "c5.2xlarge",
+      "hours": 240,
+      "cpu": 0.85,
+      "os": "Linux",
+      "note": "Compute node — roda 8h/dia, 30 dias"
+    },
+    {
+      "type": "rds",
+      "instance": "db.m5.xlarge",
+      "hours": 730,
+      "cpu": 0.30,
+      "engine": "PostgreSQL",
+      "multi_az": false,
+      "note": "Banco de dados do pipeline"
+    }
+  ]
+}

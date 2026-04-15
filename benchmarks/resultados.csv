@@ -1,0 +1,9 @@
+name,base_sci,base_cost,best_sci,best_sci_region,best_sci_cost,sci_reduction_pct,cost_diff,pareto_region,pareto_sci,pareto_sci_reduction
+Startup Web Simples,5.9243,42.78,3.4839,eu-north-1,43.95,41.2,1.17,eu-north-1,3.4839,41.2
+API REST Media Escala,25.7126,470.12,12.9393,eu-north-1,496.4,49.7,26.28,us-west-2,15.6765,39.0
+Pipeline Batch Noturno,36.9158,341.48,17.8555,eu-north-1,360.38,51.6,18.9,us-west-2,21.9398,40.6
+Arquitetura Serverless,4.3687,64.14,2.1271,eu-north-1,65.33,51.3,1.19,eu-north-1,2.1271,51.3
+ML Inference com GPU,70.2907,437.36,18.8202,eu-north-1,462.22,73.2,24.86,us-west-2,29.8495,57.5
+Microsservicos com Lambda,19.4513,400.49,9.8792,eu-north-1,422.29,49.2,21.8,us-west-2,11.9303,38.7
+Data Warehouse e Analytics,50.2602,861.29,24.5347,eu-north-1,904.75,51.2,43.46,us-west-2,30.0473,40.2
+Aplicacao Compute Intensiva,100.1896,993.06,46.6899,eu-north-1,1063.15,53.4,70.09,us-west-2,58.1541,42.0

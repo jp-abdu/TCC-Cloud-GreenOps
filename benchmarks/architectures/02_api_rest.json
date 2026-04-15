@@ -1,0 +1,40 @@
+{
+  "name": "API REST Media Escala",
+  "description": "API REST com multiplas instancias, banco PostgreSQL e cache. Tipico de SaaS em crescimento.",
+  "base_region": "us-east-1",
+  "components": [
+    {
+      "type": "ec2",
+      "instance": "m5.large",
+      "hours": 730,
+      "cpu": 0.55,
+      "os": "Linux",
+      "note": "Instancia 1 — API server"
+    },
+    {
+      "type": "ec2",
+      "instance": "m5.large",
+      "hours": 730,
+      "cpu": 0.55,
+      "os": "Linux",
+      "note": "Instancia 2 — API server"
+    },
+    {
+      "type": "ec2",
+      "instance": "m5.large",
+      "hours": 730,
+      "cpu": 0.55,
+      "os": "Linux",
+      "note": "Instancia 3 — API server"
+    },
+    {
+      "type": "rds",
+      "instance": "db.m5.large",
+      "hours": 730,
+      "cpu": 0.45,
+      "engine": "PostgreSQL",
+      "multi_az": true,
+      "note": "Banco PostgreSQL Multi-AZ"
+    }
+  ]
+}
