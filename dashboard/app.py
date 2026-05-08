@@ -479,24 +479,25 @@ with tab1:
             )
             os_type  = "Linux"  # fixo
 
-            # Valores fixos baseados na literatura
-            hours    = 730
-            cpu_util = 0.50
-
+            st.markdown('<div class="ga-section" style="margin-top:12px">Parâmetros de uso</div>',
+                        unsafe_allow_html=True)
             st.markdown(f'''
             <div style="background:{C["bg3"]};border:1px solid {C["border"]};
-                        border-radius:5px;padding:10px 14px;margin:10px 0 4px 0;">
+                        border-radius:5px;padding:10px 14px;margin:4px 0 8px 0;">
                 <div style="font-size:12px;color:{C["text2"]};line-height:1.7;">
-                    <b style="color:{C["text"]}">Utilizacao de CPU:</b> fixada em <b>50%</b>
-                    — baseline padrao do Cloud Carbon Footprint (ThoughtWorks) para
-                    workloads de proposito geral. Na pratica, a CPU real so e conhecida
-                    apos o deploy.<br>
-                    <b style="color:{C["text"]}">Horas por mes:</b> fixadas em <b>730h</b>
-                    — representa operacao continua 24/7, o limite superior do custo mensal.
-                    Uso como referencia conservadora e comparavel entre regioes.
+                    <b style="color:{C["text"]}">Utilização de CPU:</b> padrão de <b>50%</b>
+                    — baseline do Cloud Carbon Footprint (ThoughtWorks) para workloads de
+                    propósito geral. Afeta diretamente o SCI — quanto maior a CPU, maior o
+                    consumo de energia e portanto maior o carbono operacional.<br>
+                    <b style="color:{C["text"]}">Horas por mês:</b> padrão de <b>730h</b>
+                    — operação contínua 24/7. Afeta o custo total mensal mas não o SCI,
+                    que é calculado por hora. Use ~180h para ambiente de desenvolvimento,
+                    ~730h para produção contínua.
                 </div>
             </div>
             ''', unsafe_allow_html=True)
+            cpu_util = st.slider("Utilização de CPU (%)", 1, 100, 50, key="t1_cpu") / 100.0
+            hours    = st.slider("Horas por mês", 1, 730, 730, key="t1_hours")
 
             st.markdown('<div class="ga-section" style="margin-top:16px">Regiões</div>',
                         unsafe_allow_html=True)
@@ -952,19 +953,20 @@ with tab2:
 
             if comp_type == "EC2":
                 new_inst  = st.selectbox("Instância", ALL_INSTANCES, key="new_ec2_inst")
-                new_hours = 730
-                new_cpu   = 50
+                new_cpu   = st.slider("CPU (%)", 1, 100, 50, key="new_ec2_cpu")
+                new_hours = st.slider("Horas/mês", 1, 730, 730, key="new_ec2_h")
                 new_os    = "Linux"
-                preview   = f"EC2  {new_inst} — 730h/mês · 50% CPU (baseline CCF)"
+                preview   = f"EC2  {new_inst} — {new_hours}h · {new_cpu}% CPU"
 
             elif comp_type == "RDS":
                 new_rds_inst   = st.selectbox("Instância", RDS_INSTANCES, key="new_rds_inst")
                 new_rds_engine = st.selectbox("Engine",
                                               ["MySQL", "PostgreSQL", "MariaDB"],
                                               key="new_rds_eng")
-                new_rds_cpu    = 30
+                new_rds_cpu    = st.slider("CPU (%)", 1, 100, 30, key="new_rds_cpu")
+                new_rds_hours  = st.slider("Horas/mês", 1, 730, 730, key="new_rds_h")
                 new_rds_multi  = st.checkbox("Multi-AZ", key="new_rds_multi")
-                preview = f"RDS  {new_rds_inst}  {new_rds_engine}"
+                preview = f"RDS  {new_rds_inst}  {new_rds_engine} — {new_rds_hours}h · {new_rds_cpu}% CPU"
 
             elif comp_type == "Lambda":
                 new_inv  = st.number_input("Invocations/mo (M)", 0.1, 1000.0,
@@ -989,7 +991,7 @@ with tab2:
                     st.session_state["arch_components"].append({
                         "type": "rds", "instance": new_rds_inst,
                         "engine": new_rds_engine, "cpu": new_rds_cpu/100,
-                        "multi_az": new_rds_multi, "hours": 730,
+                        "multi_az": new_rds_multi, "hours": int(new_rds_hours),
                         "label": preview,
                     })
                 elif comp_type == "Lambda":
@@ -1188,8 +1190,8 @@ with tab2:
             st.dataframe(
                 eff_tbl.style
                     .format({"Custo/mês": "${:.2f}", "SCI (gCO₂/h)": "{:.4f}", "Score": "{:.1f}"})
-                    .applymap(_color_status_arch, subset=["Status"])
-                    .applymap(lambda v: f"color:{C['green']};font-weight:600" if isinstance(v, str) and "ótimo" in v else "", subset=["Região"])
+                    .map(_color_status_arch, subset=["Status"])
+                    .map(lambda v: f"color:{C['green']};font-weight:600" if isinstance(v, str) and "ótimo" in v else "", subset=["Região"])
                     .background_gradient(subset=["Score"], cmap="RdYlGn"),
                 use_container_width=True, hide_index=True,
             )
