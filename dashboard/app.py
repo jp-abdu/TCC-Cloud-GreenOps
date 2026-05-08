@@ -31,54 +31,29 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Dark / Light mode toggle via session_state ────────────────────────────
-if "dark_mode" not in st.session_state:
-    st.session_state["dark_mode"] = True
+# Tema fixo — dark mode
 
 # ── CSS injection — sistema de design completo ────────────────────────────
 def inject_css(dark: bool):
-    if dark:
-        bg         = "#0D0F0E"
-        bg2        = "#141714"
-        bg3        = "#1C201C"
-        border     = "#252825"
-        text       = "#E8EDE9"
-        text2      = "#8A9B8C"
-        text3      = "#5C6B5E"
-        green      = "#3DBA6F"
-        green_dim  = "#1F5E38"
-        green_glow = "rgba(61,186,111,0.12)"
-        red        = "#E05252"
-        tab_active = "#3DBA6F"
-        tab_text   = "#8A9B8C"
-        input_bg   = "#1C201C"
-        metric_bg  = "#141714"
-        chart_bg   = "#0D0F0E"
-        chart_grid = "#1C201C"
-        chart_text = "#8A9B8C"
-        toggle_icon = "☀"
-        toggle_label = "Light"
-    else:
-        bg         = "#F7F8F7"
-        bg2        = "#FFFFFF"
-        bg3        = "#EFF2EF"
-        border     = "#DDE4DE"
-        text       = "#111411"
-        text2      = "#4A5C4C"
-        text3      = "#8A9B8C"
-        green      = "#1F8C4B"
-        green_dim  = "#D4EDE0"
-        green_glow = "rgba(31,140,75,0.08)"
-        red        = "#C0392B"
-        tab_active = "#1F8C4B"
-        tab_text   = "#4A5C4C"
-        input_bg   = "#FFFFFF"
-        metric_bg  = "#FFFFFF"
-        chart_bg   = "#FFFFFF"
-        chart_grid = "#EFF2EF"
-        chart_text = "#4A5C4C"
-        toggle_icon = "◑"
-        toggle_label = "Dark"
+    # Dark mode fixo
+    bg         = "#0D0F0E"
+    bg2        = "#141714"
+    bg3        = "#1C201C"
+    border     = "#252825"
+    text       = "#E8EDE9"
+    text2      = "#C8D8CA"
+    text3      = "#A8BCA8"
+    green      = "#3DBA6F"
+    green_dim  = "#1F5E38"
+    green_glow = "rgba(61,186,111,0.12)"
+    red        = "#E05252"
+    tab_active = "#3DBA6F"
+    tab_text   = "#C8D8CA"
+    input_bg   = "#1C201C"
+    metric_bg  = "#141714"
+    chart_bg   = "#0D0F0E"
+    chart_grid = "#1C201C"
+    chart_text = "#C8D8CA"
 
     st.markdown(f"""
     <style>
@@ -106,20 +81,20 @@ def inject_css(dark: bool):
     }}
     .ga-wordmark {{
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 20px;
+        font-size: 32px;
         font-weight: 500;
         color: {text};
-        letter-spacing: -0.5px;
+        letter-spacing: -1px;
     }}
     .ga-wordmark span {{
         color: {green};
     }}
     .ga-tagline {{
-        font-size: 11px;
+        font-size: 13px;
         color: {text3};
-        letter-spacing: 0.8px;
+        letter-spacing: 0.6px;
         text-transform: uppercase;
-        margin-top: 2px;
+        margin-top: 4px;
     }}
     .ga-badge {{
         font-family: 'IBM Plex Mono', monospace;
@@ -176,7 +151,7 @@ def inject_css(dark: bool):
     }}
     [data-testid="stMetricValue"] {{
         font-family: 'IBM Plex Mono', monospace !important;
-        font-size: 22px !important;
+        font-size: 26px !important;
         font-weight: 500 !important;
         color: {text} !important;
     }}
@@ -310,20 +285,20 @@ def inject_css(dark: bool):
     /* ── Secoes de titulo ── */
     .ga-section {{
         font-family: 'IBM Plex Sans', sans-serif;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 600;
         color: {text3};
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-bottom: 12px;
-        margin-top: 24px;
+        margin-bottom: 14px;
+        margin-top: 28px;
     }}
     .ga-title {{
         font-family: 'IBM Plex Sans', sans-serif;
-        font-size: 18px;
-        font-weight: 500;
+        font-size: 24px;
+        font-weight: 600;
         color: {text};
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }}
     .ga-subtitle {{
         font-family: 'IBM Plex Sans', sans-serif;
@@ -383,11 +358,10 @@ def inject_css(dark: bool):
         "border": border, "text": text, "text2": text2, "text3": text3,
         "green": green, "green_dim": green_dim, "green_glow": green_glow,
         "red": red, "chart_bg": chart_bg, "chart_grid": chart_grid,
-        "chart_text": chart_text, "toggle_icon": toggle_icon,
-        "toggle_label": toggle_label,
+        "chart_text": chart_text,
     }
 
-dark = st.session_state["dark_mode"]
+dark = True  # fixo
 C = inject_css(dark)
 
 # ── Chart theme helper ─────────────────────────────────────────────────────
@@ -415,10 +389,7 @@ REGION_GROUPS = {
     "South America": ["sa-east-1"],
     "Africa / ME":   ["af-south-1", "me-south-1"],
 }
-DEFAULT_REGIONS = [
-    "us-east-1", "us-west-2", "eu-north-1", "eu-west-1",
-    "eu-central-1", "sa-east-1", "ap-south-1", "ap-northeast-1",
-]
+DEFAULT_REGIONS = ["us-east-1", "us-west-2", "eu-central-1", "eu-north-1", "eu-west-1", "sa-east-1"]
 ALL_INSTANCES = list_supported_instances()
 RDS_INSTANCES = [
     "db.t3.micro", "db.t3.small", "db.t3.medium", "db.t3.large",
@@ -430,76 +401,127 @@ RDS_INSTANCES = [
 ]
 
 # ── Header ─────────────────────────────────────────────────────────────────
-col_logo, col_toggle = st.columns([5, 1])
-with col_logo:
-    st.markdown(f"""
-    <div class="ga-header">
-        <div>
-            <div class="ga-wordmark">Green<span>Arch</span></div>
-            <div class="ga-tagline">Carbon &amp; Cost Intelligence for AWS</div>
-        </div>
-        <div class="ga-badge">ISO/IEC 21031:2024</div>
+st.markdown(f"""
+<div class="ga-header">
+    <div>
+        <div class="ga-wordmark">Green<span>Arch</span></div>
+        <div class="ga-tagline">Carbon &amp; Cost Intelligence for AWS</div>
     </div>
-    """, unsafe_allow_html=True)
-with col_toggle:
-    st.markdown("<div style='padding-top: 24px'>", unsafe_allow_html=True)
-    if st.button(
-        f"{C['toggle_icon']}  {C['toggle_label']} mode",
-        key="toggle_theme",
-        help="Alternar entre dark e light mode",
-    ):
-        st.session_state["dark_mode"] = not st.session_state["dark_mode"]
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    <div class="ga-badge">ISO/IEC 21031:2024</div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Abas ───────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["Instance", "Architecture", "Family Comparison"])
+tab1, tab2 = st.tabs(["Instância", "Arquitetura"])
+tab3 = None  # Family Comparison oculta temporariamente
 
 
 # ══════════════════════════════════════════════════════════════════════════
 # TAB 1 — INSTANCE
 # ══════════════════════════════════════════════════════════════════════════
 with tab1:
+
+    # ── Explicação SCI ────────────────────────────────────────────────────
+    sci_color   = C["green"]
+    sci_bg      = C["green_glow"]
+    sci_border  = C["green_dim"]
+    sci_text    = C["text"]
+    sci_text2   = C["text2"]
+    sci_text3   = C["text3"]
+    st.markdown(f"""
+    <div style="background:{sci_bg};border:1px solid {sci_border};
+                border-left:3px solid {sci_color};border-radius:6px;
+                padding:18px 22px;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:600;color:{sci_color};margin-bottom:8px;
+                    font-family:'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:0.8px;">
+            O que é o SCI score?
+        </div>
+        <div style="font-size:14px;color:{sci_text};line-height:1.7;font-family:'IBM Plex Sans',sans-serif;">
+            O <b>Software Carbon Intensity (SCI)</b> é um padrão ISO (21031:2024) que mede
+            a pegada de carbono de um software por unidade de uso. Aqui, a unidade é
+            <b>uma hora de compute</b>.
+        </div>
+        <div style="margin:14px 0 10px 0;font-size:20px;font-weight:700;
+                    color:{sci_color};letter-spacing:1px;text-align:center;
+                    font-family:'IBM Plex Mono',monospace;">
+            SCI = ( E &times; I + M ) / R
+        </div>
+        <div style="display:flex;gap:32px;flex-wrap:wrap;">
+            <div style="font-size:12px;color:{sci_text};min-width:200px;">
+                <b style="color:{sci_color};font-size:15px;">E</b> — Energia consumida (kWh/h)<br>
+                <span style="color:{sci_text2};font-size:11px;">Fonte: Cloud Carbon Footprint (ThoughtWorks), baseado em benchmarks SPECpower</span>
+            </div>
+            <div style="font-size:12px;color:{sci_text};min-width:200px;">
+                <b style="color:{sci_color};font-size:15px;">I</b> — Carbon intensity do grid elétrico (gCO₂/kWh)<br>
+                <span style="color:{sci_text2};font-size:11px;">Fonte: Electricity Maps, EPA eGRID, IEA — médias anuais por região AWS</span>
+            </div>
+            <div style="font-size:12px;color:{sci_text};min-width:200px;">
+                <b style="color:{sci_color};font-size:15px;">M</b> — Carbono embutido do hardware (gCO₂/h)<br>
+                <span style="color:{sci_text2};font-size:11px;">Emissões de fabricação amortizadas pela vida útil. Fonte: Boavizta dataset</span>
+            </div>
+            <div style="font-size:12px;color:{sci_text};min-width:120px;">
+                <b style="color:{sci_color};font-size:15px;">R</b> — Unidade funcional<br>
+                <span style="color:{sci_text2};font-size:11px;">1 hora de compute nesta análise</span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     col_main, col_side = st.columns([3, 1], gap="large")
 
     with col_side:
-        st.markdown('<div class="ga-section">Configure</div>', unsafe_allow_html=True)
+        st.markdown('<div class="ga-section">Configurar</div>', unsafe_allow_html=True)
         with st.form("form_instance"):
             instance_type = st.selectbox(
-                "Base instance",
+                "Instância base",
                 options=ALL_INSTANCES,
-                index=ALL_INSTANCES.index("t3.medium"),
+                index=ALL_INSTANCES.index("c5.4xlarge"),
             )
-            hours    = st.slider("Hours / month", 1, 730, 730)
-            cpu_util = st.slider("CPU utilization (%)", 1, 100, 50) / 100.0
-            os_type  = st.selectbox("Operating system", ["Linux", "Windows"])
+            os_type  = "Linux"  # fixo
 
-            st.markdown('<div class="ga-section" style="margin-top:16px">Regions</div>',
+            # Valores fixos baseados na literatura
+            hours    = 730
+            cpu_util = 0.50
+
+            st.markdown(f'''
+            <div style="background:{C["bg3"]};border:1px solid {C["border"]};
+                        border-radius:5px;padding:10px 14px;margin:10px 0 4px 0;">
+                <div style="font-size:12px;color:{C["text2"]};line-height:1.7;">
+                    <b style="color:{C["text"]}">Utilizacao de CPU:</b> fixada em <b>50%</b>
+                    — baseline padrao do Cloud Carbon Footprint (ThoughtWorks) para
+                    workloads de proposito geral. Na pratica, a CPU real so e conhecida
+                    apos o deploy.<br>
+                    <b style="color:{C["text"]}">Horas por mes:</b> fixadas em <b>730h</b>
+                    — representa operacao continua 24/7, o limite superior do custo mensal.
+                    Uso como referencia conservadora e comparavel entre regioes.
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+
+            st.markdown('<div class="ga-section" style="margin-top:16px">Regiões</div>',
                         unsafe_allow_html=True)
             selected_regions = []
             for continent, regs in REGION_GROUPS.items():
                 with st.expander(continent, expanded=(continent == "North America")):
                     for reg in regs:
                         intensity = CARBON_INTENSITY_STATIC.get(reg, 0)
-                        if st.checkbox(f"{reg}  ·  {intensity}g",
+                        if st.checkbox(reg,
                                        value=reg in DEFAULT_REGIONS,
                                        key=f"t1_{reg}"):
                             selected_regions.append(reg)
 
-            submitted1 = st.form_submit_button("Calculate", type="primary",
+            submitted1 = st.form_submit_button("Calcular", type="primary",
                                                use_container_width=True)
 
-        equiv = EQUIVALENT_GROUPS.get(instance_type, [instance_type])
-        st.caption(f"Equivalent instances: {', '.join(equiv)}")
-        st.caption(f"Scenarios to calculate: {len(equiv) * len(selected_regions)}")
+        st.caption(f"Cenários a calcular: {len(selected_regions)}")
 
     with col_main:
         if submitted1:
             if not selected_regions:
-                st.warning("Select at least one region.")
+                st.warning("Selecione ao menos uma região.")
             else:
                 engine = ScenarioEngine()
-                with st.spinner(f"Running {len(equiv) * len(selected_regions)} scenarios..."):
+                with st.spinner(f"Calculando {len(selected_regions)} cenários..."):
                     result1 = engine.compare(
                         instance_type=instance_type,
                         region=selected_regions[0],
@@ -521,39 +543,74 @@ with tab1:
         else:
             result1 = st.session_state["result1"]
             label1  = st.session_state["label1"]
-            s       = result1["summary"]
             base    = result1["base_scenario"]
-            pareto  = result1["pareto_front"]
+            # Filtra só a instância selecionada — sem equivalentes
+            pareto  = [p for p in result1["pareto_front"] if p["instance_type"] == instance_type]
             df1     = pd.DataFrame(result1["all_scenarios"])
+            df1     = df1[df1["instance_type"] == instance_type].copy()
             df1["Status"] = df1["pareto_optimal"].map(
-                {True: "Pareto optimal", False: "Dominated"})
+                {True: "Pareto ótimo", False: "Dominado"})
+
+            # Recalcula Pareto-front do zero para a instancia filtrada
+            # (os flags pareto_optimal do engine incluiam equivalentes)
+            def _is_dominated(row, df):
+                """Retorna True se existir outro cenario melhor em SCI E custo."""
+                return any(
+                    (other["sci_score"] <= row["sci_score"] and
+                     other["cost_usd_month"] <= row["cost_usd_month"] and
+                     (other["sci_score"] < row["sci_score"] or
+                      other["cost_usd_month"] < row["cost_usd_month"]))
+                    for _, other in df.iterrows()
+                    if other.name != row.name
+                )
+
+            if len(df1) > 0:
+                df1["pareto_optimal"] = [
+                    not _is_dominated(row, df1)
+                    for _, row in df1.iterrows()
+                ]
+                df1["Status"] = df1["pareto_optimal"].map(
+                    {True: "Pareto ótimo", False: "Dominado"})
+                pareto = df1[df1["pareto_optimal"]].to_dict("records")
+            
+            _best_sci_row  = df1.loc[df1["sci_score"].idxmin()] if len(df1) > 0 else None
+            _best_cost_row = df1.loc[df1["cost_usd_month"].idxmin()] if len(df1) > 0 else None
+            s = {
+                "pareto_count": int(df1["pareto_optimal"].sum()) if len(df1) > 0 else 0,
+                "total_scenarios": len(df1),
+                "best_sci_scenario":  _best_sci_row.to_dict() if _best_sci_row is not None else None,
+                "best_cost_scenario": _best_cost_row.to_dict() if _best_cost_row is not None else None,
+                "sci_reduction_vs_base": round(
+                    (base["sci_score"] - _best_sci_row["sci_score"]) / base["sci_score"] * 100, 1
+                ) if _best_sci_row is not None and base else 0,
+            }
 
             # Metricas
             st.markdown(f'<div class="ga-title">{label1}</div>', unsafe_allow_html=True)
-            st.markdown('<div class="ga-subtitle">Scenario analysis results</div>',
+            st.markdown('<div class="ga-subtitle">Resultados da análise de cenários</div>',
                         unsafe_allow_html=True)
 
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Base scenario", f"${base['cost_usd_month']:.2f}/mo",
+            c1.metric("Cenário base", f"${base['cost_usd_month']:.2f}/mo",
                       f"{base['sci_score']:.4f} gCO₂/h")
             best_sci  = s["best_sci_scenario"]
             best_cost = s["best_cost_scenario"]
             if best_sci:
-                c2.metric("Lowest SCI", f"{best_sci['sci_score']:.4f} gCO₂/h",
+                c2.metric("Menor SCI", f"{best_sci['sci_score']:.4f} gCO₂/h",
                           f"{best_sci['instance_type']} · {best_sci['region']}")
             if best_cost:
-                c3.metric("Lowest cost", f"${best_cost['cost_usd_month']:.2f}/mo",
+                c3.metric("Menor custo", f"${best_cost['cost_usd_month']:.2f}/mo",
                           f"{best_cost['instance_type']} · {best_cost['region']}")
-            c4.metric("Pareto optimal", s["pareto_count"],
-                      f"of {s['total_scenarios']} scenarios")
+            c4.metric("Pareto ótimo", s["pareto_count"],
+                      f"de {s['total_scenarios']} cenários")
 
             # Banner
             if best_sci and base:
                 sci_gain  = s.get("sci_reduction_vs_base", 0)
                 cost_diff = best_sci["cost_usd_month"] - base["cost_usd_month"]
-                custo_str = (f"${abs(cost_diff):.2f}/mo cheaper" if cost_diff < 0
-                             else f"${cost_diff:.2f}/mo more" if cost_diff > 0
-                             else "same cost")
+                custo_str = (f"${abs(cost_diff):.2f}/mês mais barata" if cost_diff < 0
+                             else f"${cost_diff:.2f}/mês a mais" if cost_diff > 0
+                             else "mesmo custo")
                 if sci_gain > 0:
                     st.markdown(
                         f'<div class="ga-banner">Best Pareto alternative: '
@@ -564,12 +621,12 @@ with tab1:
 
             # Indice de eficiencia
             st.markdown('<hr>', unsafe_allow_html=True)
-            st.markdown('<div class="ga-section">Efficiency Index</div>',
+            st.markdown('<div class="ga-section">Índice de Eficiência</div>',
                         unsafe_allow_html=True)
-            st.caption("Composite score combining SCI and cost. Adjust weight to prioritize carbon or cost.")
+            st.caption("Pontuação composta que combina SCI e custo. Ajuste o peso para priorizar carbono ou custo.")
 
             peso_carbono = st.slider(
-                "Priority: Cost — Carbon",
+                "Prioridade: Custo — Carbono",
                 0, 100, 50, 10, format="%d%%",
                 key="peso_t1",
             ) / 100.0
@@ -591,13 +648,13 @@ with tab1:
             df_score = df1[["instance_type", "region", "cost_usd_month",
                             "sci_score", "score", "Status"]].sort_values(
                 "score", ascending=False).head(10).rename(columns={
-                    "instance_type": "Instance", "region": "Region",
+                    "instance_type": "Instância", "region": "Região",
                     "cost_usd_month": "Cost/mo", "sci_score": "SCI (gCO₂/h)",
                     "score": "Score",
                 })
 
             def hl_pareto(row):
-                if row["Status"] == "Pareto optimal":
+                if row["Status"] == "Pareto ótimo":
                     return [f"color: {C['green']}; font-weight: 500"] * len(row)
                 return [""] * len(row)
 
@@ -610,30 +667,30 @@ with tab1:
 
             # Pareto-front chart
             st.markdown('<hr>', unsafe_allow_html=True)
-            st.markdown('<div class="ga-section">Pareto Front — Cost vs. Carbon</div>',
+            st.markdown('<div class="ga-section">Pareto Front — Custo vs. Carbono</div>',
                         unsafe_allow_html=True)
 
-            # Mostra as familias equivalentes exploradas
-            equiv_list = EQUIVALENT_GROUPS.get(instance_type, [instance_type])
-            base_fam   = instance_type.split(".")[0]
-            equiv_fams = sorted(set(
-                e.split(".")[0] for e in equiv_list if e.split(".")[0] != base_fam
-            ))
-            if equiv_fams:
-                equiv_note = (
-                    f"Exploring <b>{instance_type}</b> (base, circle) "
-                    f"and equivalent families: <b>{'</b>, <b>'.join(equiv_fams)}</b> (diamond). "
-                    f"Equivalent instances have the same vCPU count and workload profile."
-                )
-            else:
-                equiv_note = f"Exploring <b>{instance_type}</b> only — no equivalent families defined."
+            # Explicação Pareto
+            st.markdown(f'''
+            <div style="background:{C["bg3"]};border:1px solid {C["border"]};
+                        border-radius:6px;padding:14px 18px;margin-bottom:12px;">
+                <div style="font-size:13px;font-weight:600;color:{C["text2"]};margin-bottom:6px;
+                            font-family:'IBM Plex Sans',sans-serif;">
+                    O que é o Pareto-front?
+                </div>
+                <div style="font-size:13px;color:{C["text2"]};line-height:1.7;font-family:'IBM Plex Sans',sans-serif;">
+                    Cada ponto no gráfico é um cenário (instância + região). Um cenário é
+                    <b style="color:{C["green"]}">Pareto ótimo</b> quando <b>não existe nenhum outro
+                    cenário que seja simultaneamente mais barato E com menos carbono</b>.
+                    Mover para qualquer solução Pareto ótima é uma melhoria estrita.<br>
+                    <span style="color:{C["text3"]};font-size:12px;">
+                    Círculo = família base · Diamante = família equivalente · Estrela = cenário atual
+                    </span>
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
 
-            st.markdown(
-                f'<div style="font-size:12px; color:{C["text2"]}; margin-bottom:8px;">' +
-                equiv_note + '</div>',
-                unsafe_allow_html=True
-            )
-            st.caption("Green = Pareto optimal  ·  Gray = Dominated  ·  Star = base  ·  Circle = base family  ·  Diamond = equivalent")
+            st.caption("Verde = Pareto ótimo  ·  Cinza = Dominado  ·  Estrela = cenário base")
 
             # Marca qual familia e base vs equivalente
             base_family = instance_type.split(".")[0]  # ex: "t3" de "t3.medium"
@@ -641,36 +698,32 @@ with tab1:
                 lambda x: "Base family" if x.split(".")[0] == base_family else "Equivalent"
             )
 
-            # Grafico sem texto — hover rico, formas diferentes por familia
+            # Grafico simples — so a instancia selecionada
             fig1 = go.Figure()
 
-            for status, color in [("Pareto optimal", C["green"]), ("Dominated", C["text3"])]:
-                for family, symbol in [("Base family", "circle"), ("Equivalent", "diamond")]:
-                    mask = (df1["Status"] == status) & (df1["family"] == family)
-                    sub  = df1[mask]
-                    if len(sub) == 0:
-                        continue
-                    fig1.add_trace(go.Scatter(
-                        x=sub["cost_usd_month"], y=sub["sci_score"],
-                        mode="markers",
-                        name=f"{status} · {family}",
-                        marker=dict(
-                            symbol=symbol, size=9,
-                            color=color,
-                            opacity=0.9 if status == "Pareto optimal" else 0.45,
-                            line=dict(width=0.5, color=C["bg"]),
-                        ),
-                        customdata=sub[["instance_type","region","family"]].assign(
-                            ci=sub["carbon_intensity"] if "carbon_intensity" in sub.columns else 0
-                        ).values,
-                        hovertemplate=(
-                            "<b>%{customdata[0]} · %{customdata[1]}</b><br>"
-                            "Cost: $%{x:.2f}/mo<br>"
-                            "SCI: %{y:.4f} gCO₂/h<br>"
-                            "Grid: %{customdata[3]:.0f} gCO₂/kWh<br>"
-                            "Family: %{customdata[2]}<extra></extra>"
-                        ),
-                    ))
+            for status, color, opacity in [
+                ("Pareto ótimo", C["green"], 0.95),
+                ("Dominado",     C["text3"], 0.45),
+            ]:
+                sub = df1[df1["Status"] == status]
+                if not len(sub): continue
+                fig1.add_trace(go.Scatter(
+                    x=sub["cost_usd_month"], y=sub["sci_score"],
+                    mode="markers",
+                    name=status,
+                    marker=dict(
+                        symbol="circle", size=9,
+                        color=color, opacity=opacity,
+                        line=dict(width=0.5, color=C["bg"]),
+                    ),
+                    customdata=sub[["instance_type","region","carbon_intensity"]].values,
+                    hovertemplate=(
+                        "<b>%{customdata[0]} · %{customdata[1]}</b><br>"
+                        "Custo: $%{x:.2f}/mês<br>"
+                        "SCI: %{y:.4f} gCO₂/h<br>"
+                        "Grid: %{customdata[2]:.0f} gCO₂/kWh<extra></extra>"
+                    ),
+                ))
 
             # Estrela para o cenario base
             if base:
@@ -690,7 +743,7 @@ with tab1:
             fig1.update_layout(**chart_layout(500))
             fig1.update_layout(
                 legend=dict(itemsizing="constant"),
-                xaxis_title="Monthly cost (USD)",
+                xaxis_title="Custo mensal (USD)",
                 yaxis_title="SCI score (gCO₂eq/h)",
             )
             st.plotly_chart(fig1, use_container_width=True)
@@ -698,29 +751,37 @@ with tab1:
             # Tabela Pareto
             st.markdown('<div class="ga-section">Pareto Optimal Solutions</div>',
                         unsafe_allow_html=True)
-            st.caption("No other combination is simultaneously cheaper and lower-carbon.")
-            pareto_df = pd.DataFrame(pareto)[[
-                "instance_type", "region", "cost_usd_month", "sci_score",
-                "carbon_intensity", "operational_carbon", "embodied_carbon",
-            ]].rename(columns={
-                "instance_type": "Instance", "region": "Region",
-                "cost_usd_month": "Cost/mo", "sci_score": "SCI",
-                "carbon_intensity": "Grid (gCO₂/kWh)",
-                "operational_carbon": "Operational C.", "embodied_carbon": "Embodied C.",
-            }).sort_values("SCI")
-            st.dataframe(
-                pareto_df.style
-                    .format({"Cost/mo": "${:.2f}", "SCI": "{:.4f}",
-                             "Grid (gCO₂/kWh)": "{:.0f}",
-                             "Operational C.": "{:.4f}", "Embodied C.": "{:.2f}"})
-                    .background_gradient(subset=["SCI"], cmap="RdYlGn_r"),
-                use_container_width=True, hide_index=True,
-            )
+            st.caption("Nenhuma outra combinação é simultaneamente mais barata E com menos carbono.")
+            if pareto:
+                _pdf = pd.DataFrame(pareto)
+                _cols_available = [c for c in
+                    ["instance_type", "region", "cost_usd_month", "sci_score",
+                     "carbon_intensity", "operational_carbon"]
+                    if c in _pdf.columns
+                ]
+                pareto_df = _pdf[_cols_available].rename(columns={
+                    "instance_type": "Instância", "region": "Região",
+                    "cost_usd_month": "Custo/mês", "sci_score": "SCI",
+                    "carbon_intensity": "Grid (gCO₂/kWh)",
+                    "operational_carbon": "C. Operacional",
+                }).sort_values("SCI")
+                fmt = {k: v for k, v in {
+                    "Custo/mês": "${:.2f}", "SCI": "{:.4f}",
+                    "Grid (gCO₂/kWh)": "{:.0f}", "C. Operacional": "{:.4f}"
+                }.items() if k in pareto_df.columns}
+                st.dataframe(
+                    pareto_df.style
+                        .format(fmt)
+                        .background_gradient(subset=["SCI"], cmap="RdYlGn_r"),
+                    use_container_width=True, hide_index=True,
+                )
+            else:
+                st.info("Nenhuma solução Pareto encontrada para esta instância nas regiões selecionadas.")
 
-            with st.expander("All calculated scenarios"):
+            with st.expander("Todos os cenários calculados"):
                 full_df = df1[["instance_type", "region", "cost_usd_month",
                                "sci_score", "carbon_intensity", "Status"]].rename(columns={
-                    "instance_type": "Instance", "region": "Region",
+                    "instance_type": "Instância", "region": "Região",
                     "cost_usd_month": "Cost/mo", "sci_score": "SCI",
                     "carbon_intensity": "Grid (gCO₂/kWh)",
                 }).sort_values("SCI")
@@ -733,32 +794,47 @@ with tab1:
 
             # SCI decomposition
             st.markdown('<hr>', unsafe_allow_html=True)
-            st.markdown('<div class="ga-section">SCI Decomposition</div>',
+            st.markdown('<div class="ga-section">Decomposição do SCI</div>',
                         unsafe_allow_html=True)
-            st.caption("Operational = E × I (energy × grid intensity)  ·  Embodied = M (hardware manufacturing)")
+            st.caption("Operacional = E × I (energia × intensidade do grid)  ·  Embutido = M (fabricação do hardware)")
 
             cmp = ([base] if base else []) + [p for p in pareto if not p["is_base"]]
             cdf = pd.DataFrame(cmp)
             cdf["lbl"] = cdf.apply(
                 lambda r: f"{r['instance_type']}\n{r['region']}" +
                           (" (base)" if r["is_base"] else ""), axis=1)
+
+            show_embodied = st.checkbox(
+                "Incluir carbono embutido (M) — fabricação do hardware",
+                value=False, key="show_embodied"
+            )
+            if show_embodied:
+                st.caption(
+                    "O carbono embutido (M) é fixo em todas as regiões — representa o custo de "
+                    "fabricação do hardware amortizado pela vida útil do servidor. Não varia com a escolha de região."
+                )
+
             fig_bar = go.Figure()
-            fig_bar.add_trace(go.Bar(name="Operational (E×I)",
-                                     x=cdf["lbl"], y=cdf["operational_carbon"],
-                                     marker_color=C["green"], marker_opacity=0.85))
-            fig_bar.add_trace(go.Bar(name="Embodied (M)",
-                                     x=cdf["lbl"], y=cdf["embodied_carbon"],
-                                     marker_color=C["text3"], marker_opacity=0.6))
-            fig_bar.update_layout(barmode="stack",
-                                  **chart_layout(320, legend_title=""))
+            fig_bar.add_trace(go.Bar(
+                name="Operacional (E×I)",
+                x=cdf["lbl"], y=cdf["operational_carbon"],
+                marker_color=C["green"], marker_opacity=0.85
+            ))
+            if show_embodied:
+                fig_bar.add_trace(go.Bar(
+                    name="Embutido (M)",
+                    x=cdf["lbl"], y=cdf["embodied_carbon"],
+                    marker_color=C["text3"], marker_opacity=0.6
+                ))
+            fig_bar.update_layout(barmode="stack", **chart_layout(320, legend_title=""))
             fig_bar.update_layout(yaxis_title="gCO₂eq/h")
             st.plotly_chart(fig_bar, use_container_width=True)
 
             # PDF export
             st.markdown('<hr>', unsafe_allow_html=True)
-            st.markdown('<div class="ga-section">Export</div>', unsafe_allow_html=True)
+            st.markdown('<div class="ga-section">Exportar</div>', unsafe_allow_html=True)
 
-            if st.button("Generate PDF report", key="btn_pdf1"):
+            if st.button("Gerar relatório PDF", key="btn_pdf1"):
                 with st.spinner("Generating report..."):
                     try:
                         pdf_bytes = generate_report(result1, label1)
@@ -769,7 +845,7 @@ with tab1:
 
             if "pdf1_bytes" in st.session_state:
                 st.download_button(
-                    label="Download PDF",
+                    label="Baixar PDF",
                     data=st.session_state["pdf1_bytes"],
                     file_name=f"greenarch_{st.session_state['pdf1_label'].replace('.','_')}.pdf",
                     mime="application/pdf",
@@ -781,8 +857,8 @@ with tab1:
 # TAB 2 — ARCHITECTURE
 # ══════════════════════════════════════════════════════════════════════════
 with tab2:
-    st.markdown('<div class="ga-title">Architecture Builder</div>', unsafe_allow_html=True)
-    st.markdown('<div class="ga-subtitle">Load a benchmark architecture or compose your own. Compare total SCI across regions.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ga-title">Construtor de Arquitetura</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ga-subtitle">Carregue uma arquitetura de benchmark ou monte a sua. Compare o SCI total entre regiões.</div>', unsafe_allow_html=True)
 
     # ── Seletor de benchmarks ──────────────────────────────────────────────
     import json as _json
@@ -800,9 +876,9 @@ with tab2:
             pass
 
     if BENCH_OPTIONS:
-        st.markdown('<div class="ga-section">Benchmark architectures</div>',
+        st.markdown('<div class="ga-section">Arquiteturas de benchmark</div>',
                     unsafe_allow_html=True)
-        st.caption("Load a pre-defined benchmark architecture as starting point.")
+        st.caption("Carregue uma arquitetura pré-definida como ponto de partida.")
 
         bench_cols = st.columns(4)
         for bi, (bname, bdata) in enumerate(BENCH_OPTIONS.items()):
@@ -825,19 +901,19 @@ with tab2:
                             loaded.append({
                                 "type": "ec2",
                                 "instance": c.get("instance", "t3.medium"),
-                                "hours": c.get("hours", 730),
-                                "cpu": c.get("cpu", 0.5),
-                                "os": c.get("os", "Linux"),
-                                "label": f"EC2  {c.get('instance')}  {c.get('hours',730)}h  {int(c.get('cpu',0.5)*100)}% CPU",
+                                "hours": 730,
+                                "cpu": 0.5,
+                                "os": "Linux",
+                                "label": f"EC2  {c.get('instance')} — 730h · 50% CPU",
                             })
                         elif ct == "rds":
                             loaded.append({
                                 "type": "rds",
                                 "instance": c.get("instance", "db.t3.micro"),
                                 "engine": c.get("engine", "MySQL"),
-                                "cpu": c.get("cpu", 0.3),
+                                "cpu": 0.5,
                                 "multi_az": c.get("multi_az", False),
-                                "hours": c.get("hours", 730),
+                                "hours": 730,
                                 "label": f"RDS  {c.get('instance')}  {c.get('engine','MySQL')}",
                             })
                         elif ct == "lambda":
@@ -859,9 +935,9 @@ with tab2:
     col_build, col_arch = st.columns([1, 2], gap="large")
 
     with col_build:
-        st.markdown('<div class="ga-section">Base region</div>', unsafe_allow_html=True)
+        st.markdown('<div class="ga-section">Região base</div>', unsafe_allow_html=True)
         base_region = st.selectbox(
-            "Region", options=list(CARBON_INTENSITY_STATIC.keys()),
+            "Região", options=list(CARBON_INTENSITY_STATIC.keys()),
             index=list(CARBON_INTENSITY_STATIC.keys()).index("us-east-1"),
             key="arch_region", label_visibility="collapsed",
         )
@@ -869,24 +945,24 @@ with tab2:
         if "arch_components" not in st.session_state:
             st.session_state["arch_components"] = []
 
-        st.markdown('<div class="ga-section">Add component</div>', unsafe_allow_html=True)
-        with st.expander("+ New component",
+        st.markdown('<div class="ga-section">Adicionar componente</div>', unsafe_allow_html=True)
+        with st.expander("+ Novo componente",
                           expanded=len(st.session_state["arch_components"]) == 0):
-            comp_type = st.selectbox("Type", ["EC2", "RDS", "Lambda"], key="new_comp_type")
+            comp_type = st.selectbox("Tipo", ["EC2", "RDS", "Lambda"], key="new_comp_type")
 
             if comp_type == "EC2":
-                new_inst  = st.selectbox("Instance", ALL_INSTANCES, key="new_ec2_inst")
-                new_hours = st.number_input("Hours/mo", 1, 730, 730, key="new_ec2_h")
-                new_cpu   = st.slider("CPU (%)", 1, 100, 50, key="new_ec2_cpu")
-                new_os    = st.selectbox("OS", ["Linux", "Windows"], key="new_ec2_os")
-                preview   = f"EC2  {new_inst}  {new_hours}h  {new_cpu}% CPU"
+                new_inst  = st.selectbox("Instância", ALL_INSTANCES, key="new_ec2_inst")
+                new_hours = 730
+                new_cpu   = 50
+                new_os    = "Linux"
+                preview   = f"EC2  {new_inst} — 730h/mês · 50% CPU (baseline CCF)"
 
             elif comp_type == "RDS":
-                new_rds_inst   = st.selectbox("Instance", RDS_INSTANCES, key="new_rds_inst")
+                new_rds_inst   = st.selectbox("Instância", RDS_INSTANCES, key="new_rds_inst")
                 new_rds_engine = st.selectbox("Engine",
                                               ["MySQL", "PostgreSQL", "MariaDB"],
                                               key="new_rds_eng")
-                new_rds_cpu    = st.slider("CPU (%)", 1, 100, 30, key="new_rds_cpu")
+                new_rds_cpu    = 30
                 new_rds_multi  = st.checkbox("Multi-AZ", key="new_rds_multi")
                 preview = f"RDS  {new_rds_inst}  {new_rds_engine}"
 
@@ -895,14 +971,14 @@ with tab2:
                                            1.0, 0.1, key="new_lambda_inv")
                 new_dur  = st.number_input("Avg duration (ms)", 1, 30000,
                                            200, key="new_lambda_dur")
-                new_mem  = st.selectbox("Memory (MB)",
+                new_mem  = st.selectbox("Memória (MB)",
                                         [128, 256, 512, 1024, 2048, 4096],
                                         index=2, key="new_lambda_mem")
                 new_arch = st.selectbox("Arch", ["x86", "arm"], key="new_lambda_arch")
                 preview  = f"Lambda  {new_inv:.1f}M inv  {new_dur}ms  {new_mem}MB"
 
             st.caption(preview)
-            if st.button("Add", type="primary", key="add_comp"):
+            if st.button("Adicionar", type="primary", key="add_comp"):
                 if comp_type == "EC2":
                     st.session_state["arch_components"].append({
                         "type": "ec2", "instance": new_inst,
@@ -927,7 +1003,7 @@ with tab2:
 
         # Lista de componentes
         if st.session_state["arch_components"]:
-            st.markdown('<div class="ga-section">Components</div>',
+            st.markdown('<div class="ga-section">Componentes</div>',
                         unsafe_allow_html=True)
             for i, comp in enumerate(st.session_state["arch_components"]):
                 c_lbl, c_rm = st.columns([5, 1])
@@ -946,20 +1022,20 @@ with tab2:
                         st.rerun()
 
             # Regioes
-            st.markdown('<div class="ga-section">Compare regions</div>',
+            st.markdown('<div class="ga-section">Comparar regiões</div>',
                         unsafe_allow_html=True)
             arch_regions = []
             for reg in list(CARBON_INTENSITY_STATIC.keys()):
                 intensity = CARBON_INTENSITY_STATIC[reg]
-                if st.checkbox(f"{reg}  ·  {intensity}g",
+                if st.checkbox(reg,
                                value=reg in DEFAULT_REGIONS,
                                key=f"arch_reg_{reg}"):
                     arch_regions.append(reg)
 
-            if st.button("Calculate architecture", type="primary",
+            if st.button("Calcular arquitetura", type="primary",
                          use_container_width=True, key="calc_arch"):
                 if not arch_regions:
-                    st.warning("Select at least one region.")
+                    st.warning("Selecione ao menos uma região.")
                 else:
                     arch_calc = ArchitectureCalculator()
                     arch_results = []
@@ -985,7 +1061,7 @@ with tab2:
                     st.session_state["arch_results"] = arch_results
                     st.session_state["arch_base"] = base_region
 
-            if st.button("Clear", key="clear_arch"):
+            if st.button("Limpar", key="clear_arch"):
                 st.session_state["arch_components"] = []
                 st.session_state.pop("arch_results", None)
                 st.rerun()
@@ -1009,76 +1085,127 @@ with tab2:
             cost_diff = best_a["cost_usd_month"] - base_cost_a
 
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Base SCI", f"{base_sci_a:.4f} gCO₂/h", arch_base)
-            m2.metric("Lowest SCI", f"{best_a['sci_score']:.4f} gCO₂/h", best_a["region"])
-            m3.metric("SCI reduction", f"{reduction}%", f"vs. {arch_base}")
-            m4.metric("Base cost", f"${base_cost_a:.2f}/mo")
+            m1.metric("SCI base", f"{base_sci_a:.4f} gCO₂/h", arch_base)
+            m2.metric("Menor SCI", f"{best_a['sci_score']:.4f} gCO₂/h", best_a["region"])
+            m3.metric("Redução de SCI", f"{reduction}%", f"vs. {arch_base}")
+            m4.metric("Custo base", f"${base_cost_a:.2f}/mo")
 
             if reduction > 0:
-                custo_str = (f"${abs(cost_diff):.2f}/mo cheaper" if cost_diff < 0
-                             else f"${cost_diff:.2f}/mo more" if cost_diff > 0
-                             else "same cost")
+                custo_str = (f"${abs(cost_diff):.2f}/mês mais barata" if cost_diff < 0
+                             else f"${cost_diff:.2f}/mês a mais" if cost_diff > 0
+                             else "mesmo custo")
                 st.markdown(
-                    f'<div class="ga-banner">Best region: <b>{best_a["region"]}</b> — '
-                    f'<b>{reduction}% less carbon</b> and {custo_str} vs. {arch_base}.</div>',
+                    f'<div class="ga-banner">Melhor região: <b>{best_a["region"]}</b> — '
+                    f'<b>{reduction}% menos carbono</b> e {custo_str} vs. {arch_base}.</div>',
                     unsafe_allow_html=True
                 )
 
-            fig_arch = px.scatter(
-                arch_df, x="cost_usd_month", y="sci_score",
-                text="region", color="sci_score",
-                color_continuous_scale=[[0, C["green"]], [0.5, "#E8963A"], [1, C["red"]]],
-                hover_data={"cost_usd_month": ":.2f", "sci_score": ":.4f",
-                            "carbon_intensity": True},
-                labels={"cost_usd_month": "Total cost/mo (USD)",
-                        "sci_score": "Total SCI (gCO₂eq/h)"},
-            )
-            fig_arch.update_traces(textposition="middle right",
-                                   marker=dict(size=10, line=dict(width=0)))
+            # Recalcula Pareto para arquitetura
+            def _arch_dominated(row, df):
+                for _, other in df.iterrows():
+                    if other.name == row.name: continue
+                    if (other["sci_score"] <= row["sci_score"] and
+                        other["cost_usd_month"] <= row["cost_usd_month"] and
+                        (other["sci_score"] < row["sci_score"] or
+                         other["cost_usd_month"] < row["cost_usd_month"])):
+                        return True
+                return False
+
+            arch_df["pareto_optimal"] = [not _arch_dominated(r, arch_df)
+                                         for _, r in arch_df.iterrows()]
+            arch_df["Status"] = arch_df["pareto_optimal"].map(
+                {True: "Pareto ótimo", False: "Dominado"})
+
+            st.markdown('<div class="ga-section">Pareto Front — Custo vs. Carbono</div>',
+                        unsafe_allow_html=True)
+            st.markdown(f'''
+            <div style="background:{C["bg3"]};border:1px solid {C["border"]};
+                        border-radius:6px;padding:14px 18px;margin-bottom:12px;">
+                <div style="font-size:13px;color:{C["text2"]};line-height:1.7;font-family:'IBM Plex Sans',sans-serif;">
+                    Cada ponto representa esta arquitetura hospedada em uma região diferente.
+                    <b style="color:{C["green"]}">Pareto ótimo</b> = não existe outra região
+                    simultaneamente mais barata E com menos carbono.
+                </div>
+            </div>
+            ''', unsafe_allow_html=True)
+
+            fig_arch = go.Figure()
+            for status, color, opacity in [
+                ("Pareto ótimo", C["green"], 0.95),
+                ("Dominado",     C["text3"], 0.45),
+            ]:
+                sub = arch_df[arch_df["Status"] == status]
+                if not len(sub): continue
+                fig_arch.add_trace(go.Scatter(
+                    x=sub["cost_usd_month"], y=sub["sci_score"],
+                    mode="markers", name=status,
+                    marker=dict(symbol="circle", size=10, color=color,
+                                opacity=opacity, line=dict(width=0.5, color=C["bg"])),
+                    customdata=sub[["region", "carbon_intensity"]].values,
+                    hovertemplate=(
+                        "<b>%{customdata[0]}</b><br>"
+                        "Custo: $%{x:.2f}/mês<br>"
+                        "SCI: %{y:.4f} gCO₂/h<br>"
+                        "Grid: %{customdata[1]:.0f} gCO₂/kWh<extra></extra>"
+                    ),
+                ))
             if len(base_row) > 0:
                 fig_arch.add_trace(go.Scatter(
                     x=[base_row["cost_usd_month"].values[0]],
                     y=[base_row["sci_score"].values[0]],
-                    mode="markers",
+                    mode="markers", name="Região base",
                     marker=dict(symbol="star", size=16, color="#E8963A",
                                 line=dict(width=1, color=C["bg"])),
-                    name="Base region", showlegend=True,
+                    customdata=[[arch_base]],
+                    hovertemplate="<b>Base: %{customdata[0]}</b><br>Custo: $%{x:.2f}/mês<br>SCI: %{y:.4f} gCO₂/h<extra></extra>",
                 ))
-            fig_arch.update_layout(**chart_layout(380), coloraxis_showscale=False)
+            fig_arch.update_layout(**chart_layout(380, legend_title=""))
+            fig_arch.update_layout(
+                xaxis_title="Custo total/mês (USD)",
+                yaxis_title="SCI total (gCO₂eq/h)"
+            )
+            st.caption("Verde = Pareto ótimo  ·  Cinza = Dominado  ·  Estrela = região base")
             st.plotly_chart(fig_arch, use_container_width=True)
 
-            tbl = arch_df[["region", "cost_usd_month", "sci_score",
-                           "carbon_intensity"]].sort_values("sci_score").rename(columns={
-                "region": "Region", "cost_usd_month": "Cost/mo",
-                "sci_score": "SCI (gCO₂/h)", "carbon_intensity": "Grid (gCO₂/kWh)",
+            # ── Índice de Eficiência (igual tab1) ─────────────────────
+            st.markdown('<div class="ga-section">Índice de Eficiência</div>',
+                        unsafe_allow_html=True)
+            st.caption("Pontuação composta que combina SCI e custo. Ajuste o peso para priorizar carbono ou custo.")
+            arch_w = st.slider("Prioridade: Custo — Carbono", 0, 100, 50,
+                               key="arch_weight", format="%d%%")
+            sci_n  = (arch_df["sci_score"] - arch_df["sci_score"].min()) / (arch_df["sci_score"].max() - arch_df["sci_score"].min() + 1e-9)
+            cost_n = (arch_df["cost_usd_month"] - arch_df["cost_usd_month"].min()) / (arch_df["cost_usd_month"].max() - arch_df["cost_usd_month"].min() + 1e-9)
+            arch_df["score"] = -(sci_n * (arch_w/100) + cost_n * (1 - arch_w/100)) * 100
+            eff_tbl = arch_df[["region", "cost_usd_month", "sci_score", "score", "Status"]].sort_values("score", ascending=False).rename(columns={
+                "region": "Região", "cost_usd_month": "Custo/mês",
+                "sci_score": "SCI (gCO₂/h)", "score": "Score", "Status": "Status"
             })
+
+            def _color_status_arch(val):
+                if val == "Pareto ótimo": return f"color: {C['green']}; font-weight:600"
+                return f"color: {C['text3']}"
+
             st.dataframe(
-                tbl.style
-                    .format({"Cost/mo": "${:.2f}", "SCI (gCO₂/h)": "{:.4f}",
-                             "Grid (gCO₂/kWh)": "{:.0f}"})
-                    .background_gradient(subset=["SCI (gCO₂/h)"], cmap="RdYlGn_r"),
+                eff_tbl.style
+                    .format({"Custo/mês": "${:.2f}", "SCI (gCO₂/h)": "{:.4f}", "Score": "{:.1f}"})
+                    .applymap(_color_status_arch, subset=["Status"])
+                    .applymap(lambda v: f"color:{C['green']};font-weight:600" if isinstance(v, str) and "ótimo" in v else "", subset=["Região"])
+                    .background_gradient(subset=["Score"], cmap="RdYlGn"),
                 use_container_width=True, hide_index=True,
             )
 
-            if len(base_row) > 0:
-                base_comps = base_row["components"].values[0]
-                st.markdown(f'<div class="ga-section">Component breakdown — {arch_base}</div>',
-                            unsafe_allow_html=True)
-                cmp_df = pd.DataFrame(base_comps)
-                fig_cmp = go.Figure()
-                fig_cmp.add_trace(go.Bar(
-                    name="Operational", x=cmp_df["label"],
-                    y=cmp_df["operational_carbon_gco2_hour"],
-                    marker_color=C["green"], marker_opacity=0.85,
-                ))
-                fig_cmp.add_trace(go.Bar(
-                    name="Embodied", x=cmp_df["label"],
-                    y=cmp_df["embodied_carbon_gco2_hour"],
-                    marker_color=C["text3"], marker_opacity=0.6,
-                ))
-                fig_cmp.update_layout(barmode="stack", **chart_layout(300))
-                fig_cmp.update_layout(yaxis_title="gCO₂eq/h")
-                st.plotly_chart(fig_cmp, use_container_width=True)
+            # ── Export PDF ────────────────────────────────────────────────
+            st.markdown('<div class="ga-section">Exportar</div>', unsafe_allow_html=True)
+            if st.button("Gerar relatório PDF", key="arch_pdf_btn"):
+                try:
+                    from core.report_generator import generate_report_arch as _gen_arch
+                    _label = st.session_state.get("arch_name", "Arquitetura")
+                    _pdf   = _gen_arch(arch_df, arch_base, base_sci_a, base_cost_a, reduction, _label)
+                    st.download_button("Baixar PDF", _pdf,
+                                       file_name="greenarch_arquitetura.pdf",
+                                       mime="application/pdf", key="arch_pdf_dl")
+                except Exception as e:
+                    st.error(f"Erro ao gerar PDF: {e}")
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -1134,223 +1261,224 @@ INSTANCE_SPECS = {
     "g4dn.4xlarge":{"vcpu": 16,"mem_gib": 64,   "proc": "Intel + NVIDIA T4","family": "g4dn", "type": "GPU"},
 }
 
-with tab3:
-    st.markdown('<div class="ga-title">Family Comparison</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="ga-subtitle">Given a vCPU and memory requirement, compare all instance '
-        'families that meet it — showing SCI and cost per processor architecture.</div>',
-        unsafe_allow_html=True
-    )
+if tab3 is not None:
+  with tab3:
+      st.markdown('<div class="ga-title">Comparação de Famílias</div>', unsafe_allow_html=True)
+      st.markdown(
+          '<div class="ga-subtitle">Given a vCPU and memory requirement, compare all instance '
+          'que atendem o requisito — mostrando SCI e custo por arquitetura de processador.</div>',
+          unsafe_allow_html=True
+      )
 
-    with st.form("form_family"):
-        ff1, ff2, ff3, ff4 = st.columns(4)
-        with ff1:
-            req_vcpu = st.selectbox(
-                "vCPUs required",
-                options=[2, 4, 8, 16],
-                index=0, key="req_vcpu",
-            )
-        with ff2:
-            # Opcoes de memoria para o vcpu selecionado
-            mem_opts = sorted(set(
-                v["mem_gib"] for k, v in INSTANCE_SPECS.items()
-                if v["vcpu"] == req_vcpu
-            ))
-            req_mem = st.selectbox(
-                "Memory required (GiB)",
-                options=mem_opts,
-                key="req_mem",
-            )
-        with ff3:
-            fam_region = st.selectbox(
-                "Region",
-                options=list(CARBON_INTENSITY_STATIC.keys()),
-                index=list(CARBON_INTENSITY_STATIC.keys()).index("us-east-1"),
-                key="fam_region",
-            )
-        with ff4:
-            fam_cpu = st.slider("CPU utilization (%)", 1, 100, 50, key="fam_cpu")
+      with st.form("form_family"):
+          ff1, ff2, ff3, ff4 = st.columns(4)
+          with ff1:
+              req_vcpu = st.selectbox(
+                  "vCPUs necessários",
+                  options=[2, 4, 8, 16],
+                  index=0, key="req_vcpu",
+              )
+          with ff2:
+              # Opcoes de memoria para o vcpu selecionado
+              mem_opts = sorted(set(
+                  v["mem_gib"] for k, v in INSTANCE_SPECS.items()
+                  if v["vcpu"] == req_vcpu
+              ))
+              req_mem = st.selectbox(
+                  "Memória necessária (GiB)",
+                  options=mem_opts,
+                  key="req_mem",
+              )
+          with ff3:
+              fam_region = st.selectbox(
+                  "Região",
+                  options=list(CARBON_INTENSITY_STATIC.keys()),
+                  index=list(CARBON_INTENSITY_STATIC.keys()).index("us-east-1"),
+                  key="fam_region",
+              )
+          with ff4:
+              fam_cpu = st.slider("Utilização de CPU (%)", 1, 100, 50, key="fam_cpu")
 
-        submitted_fam = st.form_submit_button("Compare families", type="primary")
+          submitted_fam = st.form_submit_button("Comparar famílias", type="primary")
 
-    if submitted_fam:
-        from core.sci_calculator import SCICalculator as _SCI
-        _calc = _SCI()
+      if submitted_fam:
+          from core.sci_calculator import SCICalculator as _SCI
+          _calc = _SCI()
 
-        # Filtra instancias que atendem requisitos
-        candidates = [
-            k for k, v in INSTANCE_SPECS.items()
-            if v["vcpu"] == req_vcpu and v["mem_gib"] == req_mem
-        ]
+          # Filtra instancias que atendem requisitos
+          candidates = [
+              k for k, v in INSTANCE_SPECS.items()
+              if v["vcpu"] == req_vcpu and v["mem_gib"] == req_mem
+          ]
 
-        if not candidates:
-            st.warning(f"No instances found with {req_vcpu} vCPUs and {req_mem} GiB.")
-        else:
-            rows_fam = []
-            with st.spinner(f"Calculating {len(candidates)} instances..."):
-                for inst in candidates:
-                    try:
-                        r = _calc.calculate({
-                            "instance_type": inst,
-                            "region": fam_region,
-                            "hours_per_month": 730,
-                            "cpu_utilization": fam_cpu / 100.0,
-                        })
-                        spec = INSTANCE_SPECS[inst]
-                        rows_fam.append({
-                            "Instance": inst,
-                            "Family": spec["family"],
-                            "Processor": spec["proc"],
-                            "Type": spec["type"],
-                            "vCPU": spec["vcpu"],
-                            "Memory (GiB)": spec["mem_gib"],
-                            "SCI (gCO2/h)": r["sci_score_gco2_per_hour"],
-                            "Cost/mo": r["cost_usd_month"],
-                            "Operational C.": r["operational_carbon_gco2_hour"],
-                            "Embodied C.": r["embodied_carbon_gco2_hour"],
-                            "Energy (kWh/h)": r["energy_kwh_hour_with_pue"],
-                        })
-                    except Exception as e:
-                        pass
+          if not candidates:
+              st.warning(f"No instances found with {req_vcpu} vCPUs and {req_mem} GiB.")
+          else:
+              rows_fam = []
+              with st.spinner(f"Calculating {len(candidates)} instances..."):
+                  for inst in candidates:
+                      try:
+                          r = _calc.calculate({
+                              "instance_type": inst,
+                              "region": fam_region,
+                              "hours_per_month": 730,
+                              "cpu_utilization": fam_cpu / 100.0,
+                          })
+                          spec = INSTANCE_SPECS[inst]
+                          rows_fam.append({
+                              "Instância": inst,
+                              "Family": spec["family"],
+                              "Processor": spec["proc"],
+                              "Tipo": spec["type"],
+                              "vCPU": spec["vcpu"],
+                              "Memory (GiB)": spec["mem_gib"],
+                              "SCI (gCO2/h)": r["sci_score_gco2_per_hour"],
+                              "Cost/mo": r["cost_usd_month"],
+                              "Operational C.": r["operational_carbon_gco2_hour"],
+                              "Embodied C.": r["embodied_carbon_gco2_hour"],
+                              "Energy (kWh/h)": r["energy_kwh_hour_with_pue"],
+                          })
+                      except Exception as e:
+                          pass
 
-            st.session_state["fam_results"] = rows_fam
-            st.session_state["fam_res_region"] = fam_region
-            st.session_state["fam_res_vcpu"] = req_vcpu
-            st.session_state["fam_res_mem"] = req_mem
+              st.session_state["fam_results"] = rows_fam
+              st.session_state["fam_res_region"] = fam_region
+              st.session_state["fam_res_vcpu"] = req_vcpu
+              st.session_state["fam_res_mem"] = req_mem
 
-    if "fam_results" in st.session_state and st.session_state["fam_results"]:
-        fam_df     = pd.DataFrame(st.session_state["fam_results"])
-        fam_region = st.session_state["fam_res_region"]
-        fam_vcpu   = st.session_state["fam_res_vcpu"]
-        fam_mem    = st.session_state["fam_res_mem"]
+      if "fam_results" in st.session_state and st.session_state["fam_results"]:
+          fam_df     = pd.DataFrame(st.session_state["fam_results"])
+          fam_region = st.session_state["fam_res_region"]
+          fam_vcpu   = st.session_state["fam_res_vcpu"]
+          fam_mem    = st.session_state["fam_res_mem"]
 
-        best_sci  = fam_df.loc[fam_df["SCI (gCO2/h)"].idxmin()]
-        best_cost = fam_df.loc[fam_df["Cost/mo"].idxmin()]
-        worst_sci = fam_df.loc[fam_df["SCI (gCO2/h)"].idxmax()]
-        sci_gap   = round((worst_sci["SCI (gCO2/h)"] - best_sci["SCI (gCO2/h)"]) /
-                          worst_sci["SCI (gCO2/h)"] * 100, 1)
+          best_sci  = fam_df.loc[fam_df["SCI (gCO2/h)"].idxmin()]
+          best_cost = fam_df.loc[fam_df["Cost/mo"].idxmin()]
+          worst_sci = fam_df.loc[fam_df["SCI (gCO2/h)"].idxmax()]
+          sci_gap   = round((worst_sci["SCI (gCO2/h)"] - best_sci["SCI (gCO2/h)"]) /
+                            worst_sci["SCI (gCO2/h)"] * 100, 1)
 
-        st.markdown(
-            f'<div class="ga-title" style="margin-top:16px">'
-            f'{fam_vcpu} vCPU / {fam_mem} GiB — {fam_region}</div>',
-            unsafe_allow_html=True
-        )
-        st.markdown(
-            f'<div class="ga-subtitle">{len(fam_df)} instances across '
-            f'{fam_df["Family"].nunique()} families</div>',
-            unsafe_allow_html=True
-        )
+          st.markdown(
+              f'<div class="ga-title" style="margin-top:16px">'
+              f'{fam_vcpu} vCPU / {fam_mem} GiB — {fam_region}</div>',
+              unsafe_allow_html=True
+          )
+          st.markdown(
+              f'<div class="ga-subtitle">{len(fam_df)} instances across '
+              f'{fam_df["Family"].nunique()} families</div>',
+              unsafe_allow_html=True
+          )
 
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Lowest SCI", f"{best_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
-                  best_sci["Instance"])
-        m2.metric("Lowest cost", f"${best_cost['Cost/mo']:.2f}/mo",
-                  best_cost["Instance"])
-        m3.metric("Highest SCI", f"{worst_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
-                  worst_sci["Instance"])
-        m4.metric("SCI gap (best vs worst)", f"{sci_gap}%",
-                  "same vCPU and memory")
+          m1, m2, m3, m4 = st.columns(4)
+          m1.metric("Menor SCI", f"{best_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
+                    best_sci["Instância"])
+          m2.metric("Menor custo", f"${best_cost['Cost/mo']:.2f}/mo",
+                    best_cost["Instância"])
+          m3.metric("Highest SCI", f"{worst_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
+                    worst_sci["Instância"])
+          m4.metric("SCI gap (best vs worst)", f"{sci_gap}%",
+                    "same vCPU and memory")
 
-        st.markdown(
-            f'<div class="ga-banner">Instances with the same resources (<b>{fam_vcpu} vCPU / '
-            f'{fam_mem} GiB</b>) differ by up to <b>{sci_gap}% in SCI</b> — '
-            f'purely due to processor architecture and hardware efficiency.</div>',
-            unsafe_allow_html=True
-        )
+          st.markdown(
+              f'<div class="ga-banner">Instances with the same resources (<b>{fam_vcpu} vCPU / '
+              f'{fam_mem} GiB</b>) differ by up to <b>{sci_gap}% in SCI</b> — '
+              f'purely due to processor architecture and hardware efficiency.</div>',
+              unsafe_allow_html=True
+          )
 
-        # Grafico SCI x Custo por instancia
-        st.markdown('<hr>', unsafe_allow_html=True)
-        st.markdown('<div class="ga-section">SCI vs. Cost — by instance family</div>',
-                    unsafe_allow_html=True)
-        st.caption("All instances have identical compute resources. Differences reveal hardware efficiency.")
+          # Grafico SCI x Custo por instancia
+          st.markdown('<hr>', unsafe_allow_html=True)
+          st.markdown('<div class="ga-section">SCI vs. Cost — by instance family</div>',
+                      unsafe_allow_html=True)
+          st.caption("Todas as instâncias têm os mesmos recursos de compute. As diferenças revelam eficiência do hardware.")
 
-        # Cor por tipo de processador
-        proc_colors = {
-            "Graviton2":        "#3DBA6F",
-            "Intel Skylake":    "#5B8FD4",
-            "Intel Xeon":       "#4A7BC4",
-            "Intel Ice Lake":   "#3A6BB4",
-            "Intel + NVIDIA T4":"#E8963A",
-            "Intel + NVIDIA V100":"#D4783A",
-        }
+          # Cor por tipo de processador
+          proc_colors = {
+              "Graviton2":        "#3DBA6F",
+              "Intel Skylake":    "#5B8FD4",
+              "Intel Xeon":       "#4A7BC4",
+              "Intel Ice Lake":   "#3A6BB4",
+              "Intel + NVIDIA T4":"#E8963A",
+              "Intel + NVIDIA V100":"#D4783A",
+          }
 
-        fig_fam = go.Figure()
-        for proc in fam_df["Processor"].unique():
-            sub = fam_df[fam_df["Processor"] == proc]
-            fig_fam.add_trace(go.Scatter(
-                x=sub["Cost/mo"], y=sub["SCI (gCO2/h)"],
-                mode="markers+text",
-                name=proc,
-                text=sub["Instance"],
-                textposition="middle right",
-                textfont=dict(size=10),
-                marker=dict(
-                    size=12,
-                    color=proc_colors.get(proc, "#888888"),
-                    line=dict(width=0.5, color="#0D0F0E"),
-                ),
-                customdata=sub[["Family", "Type", "Energy (kWh/h)"]].values,
-                hovertemplate=(
-                    "<b>%{text}</b><br>"
-                    "Processor: " + proc + "<br>"
-                    "Cost: $%{x:.2f}/mo<br>"
-                    "SCI: %{y:.4f} gCO₂/h<br>"
-                    "Energy: %{customdata[2]:.5f} kWh/h<extra></extra>"
-                ),
-            ))
+          fig_fam = go.Figure()
+          for proc in fam_df["Processor"].unique():
+              sub = fam_df[fam_df["Processor"] == proc]
+              fig_fam.add_trace(go.Scatter(
+                  x=sub["Cost/mo"], y=sub["SCI (gCO2/h)"],
+                  mode="markers+text",
+                  name=proc,
+                  text=sub["Instância"],
+                  textposition="middle right",
+                  textfont=dict(size=10),
+                  marker=dict(
+                      size=12,
+                      color=proc_colors.get(proc, "#888888"),
+                      line=dict(width=0.5, color="#0D0F0E"),
+                  ),
+                  customdata=sub[["Family", "Tipo", "Energy (kWh/h)"]].values,
+                  hovertemplate=(
+                      "<b>%{text}</b><br>"
+                      "Processor: " + proc + "<br>"
+                      "Cost: $%{x:.2f}/mo<br>"
+                      "SCI: %{y:.4f} gCO₂/h<br>"
+                      "Energy: %{customdata[2]:.5f} kWh/h<extra></extra>"
+                  ),
+              ))
 
-        fig_fam.update_layout(
-            **chart_layout(440),
-            xaxis_title="Monthly cost (USD)",
-            yaxis_title="SCI score (gCO₂eq/h)",
-            legend_title="Processor",
-        )
-        st.plotly_chart(fig_fam, use_container_width=True)
+          fig_fam.update_layout(
+              **chart_layout(440),
+              xaxis_title="Custo mensal (USD)",
+              yaxis_title="SCI score (gCO₂eq/h)",
+              legend_title="Processor",
+          )
+          st.plotly_chart(fig_fam, use_container_width=True)
 
-        # Grafico de barras SCI por instancia
-        st.markdown('<div class="ga-section">SCI decomposition by instance</div>',
-                    unsafe_allow_html=True)
-        st.caption("Operational = E × I  ·  Embodied = M")
+          # Grafico de barras SCI por instancia
+          st.markdown('<div class="ga-section">SCI decomposition by instance</div>',
+                      unsafe_allow_html=True)
+          st.caption("Operational = E × I  ·  Embodied = M")
 
-        fam_sorted = fam_df.sort_values("SCI (gCO2/h)")
-        fig_fam_bar = go.Figure()
-        fig_fam_bar.add_trace(go.Bar(
-            name="Operational (E×I)",
-            x=fam_sorted["Instance"],
-            y=fam_sorted["Operational C."],
-            marker_color=C["green"], marker_opacity=0.85,
-        ))
-        fig_fam_bar.add_trace(go.Bar(
-            name="Embodied (M)",
-            x=fam_sorted["Instance"],
-            y=fam_sorted["Embodied C."],
-            marker_color=C["text3"], marker_opacity=0.6,
-        ))
-        fig_fam_bar.update_layout(
-            barmode="stack", **chart_layout(340),
-            yaxis_title="gCO₂eq/h",
-        )
-        st.plotly_chart(fig_fam_bar, use_container_width=True)
+          fam_sorted = fam_df.sort_values("SCI (gCO2/h)")
+          fig_fam_bar = go.Figure()
+          fig_fam_bar.add_trace(go.Bar(
+              name="Operacional (E×I)",
+              x=fam_sorted["Instância"],
+              y=fam_sorted["Operational C."],
+              marker_color=C["green"], marker_opacity=0.85,
+          ))
+          fig_fam_bar.add_trace(go.Bar(
+              name="Embutido (M)",
+              x=fam_sorted["Instância"],
+              y=fam_sorted["Embodied C."],
+              marker_color=C["text3"], marker_opacity=0.6,
+          ))
+          fig_fam_bar.update_layout(
+              barmode="stack", **chart_layout(340),
+              yaxis_title="gCO₂eq/h",
+          )
+          st.plotly_chart(fig_fam_bar, use_container_width=True)
 
-        # Tabela completa
-        st.markdown('<div class="ga-section">Full comparison</div>',
-                    unsafe_allow_html=True)
-        display_fam = fam_df[[
-            "Instance", "Family", "Processor", "Type",
-            "SCI (gCO2/h)", "Cost/mo", "Operational C.", "Embodied C.", "Energy (kWh/h)"
-        ]].sort_values("SCI (gCO2/h)")
-        st.dataframe(
-            display_fam.style
-                .format({
-                    "SCI (gCO2/h)": "{:.4f}",
-                    "Cost/mo": "${:.2f}",
-                    "Operational C.": "{:.4f}",
-                    "Embodied C.": "{:.2f}",
-                    "Energy (kWh/h)": "{:.5f}",
-                })
-                .background_gradient(subset=["SCI (gCO2/h)"], cmap="RdYlGn_r"),
-            use_container_width=True, hide_index=True,
-        )
+          # Tabela completa
+          st.markdown('<div class="ga-section">Full comparison</div>',
+                      unsafe_allow_html=True)
+          display_fam = fam_df[[
+              "Instância", "Family", "Processor", "Tipo",
+              "SCI (gCO2/h)", "Cost/mo", "Operational C.", "Embodied C.", "Energy (kWh/h)"
+          ]].sort_values("SCI (gCO2/h)")
+          st.dataframe(
+              display_fam.style
+                  .format({
+                      "SCI (gCO2/h)": "{:.4f}",
+                      "Cost/mo": "${:.2f}",
+                      "Operational C.": "{:.4f}",
+                      "Embodied C.": "{:.2f}",
+                      "Energy (kWh/h)": "{:.5f}",
+                  })
+                  .background_gradient(subset=["SCI (gCO2/h)"], cmap="RdYlGn_r"),
+              use_container_width=True, hide_index=True,
+          )
 
 # ── Footer ─────────────────────────────────────────────────────────────────
 st.markdown('<hr>', unsafe_allow_html=True)

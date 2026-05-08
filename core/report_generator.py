@@ -47,13 +47,13 @@ def _build_styles():
         "title": ParagraphStyle(
             "title", parent=base["Normal"],
             fontSize=28, fontName="Helvetica-Bold",
-            textColor=BLUE_DARK, spaceAfter=6,
+            textColor=BLUE_DARK, spaceAfter=4,
             alignment=TA_CENTER,
         ),
         "subtitle": ParagraphStyle(
             "subtitle", parent=base["Normal"],
             fontSize=11, fontName="Helvetica",
-            textColor=GRAY, spaceAfter=4,
+            textColor=GRAY, spaceAfter=2,
             alignment=TA_CENTER,
         ),
         "h1": ParagraphStyle(
@@ -195,7 +195,7 @@ def generate_report(result: dict, instance_label: str = "") -> bytes:
         pagesize=letter,
         rightMargin=0.75 * inch,
         leftMargin=0.75 * inch,
-        topMargin=0.75 * inch,
+        topMargin=0.6 * inch,
         bottomMargin=0.75 * inch,
         title="GreenArch — Relatorio de Analise",
         author="GreenArch",
@@ -203,17 +203,49 @@ def generate_report(result: dict, instance_label: str = "") -> bytes:
 
     styles  = _build_styles()
     story   = []
-    s       = result["summary"]
     base    = result["base_scenario"]
-    pareto  = result["pareto_front"]
     now     = datetime.now().strftime("%d/%m/%Y %H:%M")
 
+    # Filtra tudo para apenas a instância selecionada — sem equivalentes
+    instance_base = instance_label.strip() if instance_label else (base["instance_type"] if base else "")
+    all_scenarios = [sc for sc in result.get("all_scenarios", []) if sc["instance_type"] == instance_base]
+
+    # Recalcula Pareto do zero para o conjunto filtrado
+    # (os flags originais do engine incluíam equivalentes)
+    def _dominated(row, rows):
+        for other in rows:
+            if other is row:
+                continue
+            if (other["sci_score"] <= row["sci_score"] and
+                other["cost_usd_month"] <= row["cost_usd_month"] and
+                (other["sci_score"] < row["sci_score"] or
+                 other["cost_usd_month"] < row["cost_usd_month"])):
+                return True
+        return False
+
+    for sc in all_scenarios:
+        sc["pareto_optimal"] = not _dominated(sc, all_scenarios)
+
+    pareto = [sc for sc in all_scenarios if sc["pareto_optimal"]]
+
+    # Reconstroi summary baseado nos dados filtrados
+    all_sorted_tmp = sorted(all_scenarios, key=lambda x: x["sci_score"])
+    best_sci_f  = all_sorted_tmp[0] if all_sorted_tmp else None
+    best_cost_f = sorted(all_scenarios, key=lambda x: x["cost_usd_month"])[0] if all_scenarios else None
+    s = {
+        "total_scenarios": len(all_scenarios),
+        "pareto_count": len(pareto),
+        "best_sci_scenario": best_sci_f,
+        "best_cost_scenario": best_cost_f,
+        "sci_reduction_vs_base": round(
+            (base["sci_score"] - best_sci_f["sci_score"]) / base["sci_score"] * 100, 1
+        ) if best_sci_f and base else 0,
+    }
+
     # ── CABECALHO ──────────────────────────────────────────────────────
-    story.append(Spacer(1, 0.2 * inch))
     story.append(Paragraph("GreenArch", styles["title"]))
-    story.append(Paragraph("Carbon and Cost Architecture Advisor for AWS", styles["subtitle"]))
     story.append(Paragraph(f"Relatorio gerado em {now}", styles["caption"]))
-    story.append(HRFlowable(width="100%", thickness=2, color=BLUE_DARK, spaceAfter=12))
+    story.append(HRFlowable(width="100%", thickness=2, color=BLUE_DARK, spaceBefore=4, spaceAfter=12))
 
     # ── CONFIGURACAO DO WORKLOAD ────────────────────────────────────────
     story.append(Paragraph("Configuracao Analisada", styles["h1"]))
@@ -315,7 +347,8 @@ def generate_report(result: dict, instance_label: str = "") -> bytes:
         story.append(Paragraph("Nenhuma solucao Pareto-otima encontrada.", styles["body"]))
 
     # ── TODOS OS CENARIOS ──────────────────────────────────────────────
-    story.append(PageBreak())
+    story.append(Spacer(1, 0.2 * inch))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY, spaceAfter=8))
     story.append(Paragraph("Todos os Cenarios Calculados", styles["h1"]))
     story.append(Paragraph(
         "Ordenados por SCI crescente. Verde = Pareto-otimo.",
@@ -323,7 +356,6 @@ def generate_report(result: dict, instance_label: str = "") -> bytes:
     ))
     story.append(Spacer(1, 0.05 * inch))
 
-    all_scenarios = result.get("all_scenarios", [])
     all_sorted = sorted(all_scenarios, key=lambda x: x["sci_score"])
 
     all_rows = []
@@ -407,6 +439,145 @@ def generate_report(result: dict, instance_label: str = "") -> bytes:
 
     # ── RODAPE ─────────────────────────────────────────────────────────
     story.append(Spacer(1, 0.1 * inch))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY, spaceAfter=4))
+    story.append(Paragraph(
+        f"GreenArch — Carbon and Cost Architecture Advisor · ISO/IEC 21031:2024 · {now}",
+        styles["footer"]
+    ))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.read()
+
+def generate_report_arch(arch_df, base_region: str, base_sci: float,
+                          base_cost: float, reduction: float,
+                          arch_name: str = "Arquitetura") -> bytes:
+    """Gera PDF para a aba de Arquitetura."""
+    from io import BytesIO
+    buffer  = BytesIO()
+    styles  = _build_styles()
+    story   = []
+    now     = datetime.now().strftime("%d/%m/%Y %H:%M")
+
+    best = arch_df.loc[arch_df["sci_score"].idxmin()]
+    pareto_df = arch_df[arch_df["pareto_optimal"]] if "pareto_optimal" in arch_df.columns else arch_df
+
+    doc = SimpleDocTemplate(
+        buffer, pagesize=letter,
+        leftMargin=0.85*inch, rightMargin=0.85*inch,
+        topMargin=0.6*inch, bottomMargin=0.75*inch,
+    )
+
+    # Cabeçalho
+    story.append(Paragraph("GreenArch", styles["title"]))
+    story.append(Paragraph(f"Relatorio gerado em {now}", styles["caption"]))
+    story.append(HRFlowable(width="100%", thickness=2, color=BLUE_DARK, spaceBefore=4, spaceAfter=12))
+
+    # Configuração analisada
+    story.append(Paragraph("Arquitetura Analisada", styles["h1"]))
+    story.append(_data_table(
+        ["Parametro", "Valor"],
+        [
+            ["Nome da arquitetura",   arch_name],
+            ["Regiao base",           base_region],
+            ["SCI da regiao base",    f"{base_sci:.4f} gCO2eq/hora"],
+            ["Custo da regiao base",  f"${base_cost:.2f}/mes"],
+            ["Regioes comparadas",    str(len(arch_df))],
+            ["Solucoes Pareto-otimas", str(len(pareto_df))],
+        ],
+        [200, 300],
+    ))
+
+    # Resultados principais
+    story.append(Spacer(1, 0.15*inch))
+    story.append(Paragraph("Resultados Principais", styles["h1"]))
+    story.append(_metric_table([
+        (f"{base_sci:.4f}", "gCO2eq/hora", "Regiao base — SCI"),
+        (f"{best['sci_score']:.4f}", "gCO2eq/hora", "Menor SCI encontrado"),
+        (f"{reduction}%", "vs. regiao base", "Reducao maxima de SCI"),
+        (str(len(pareto_df)), f"de {len(arch_df)} regioes", "Pareto-otimas"),
+    ]))
+
+    best_row = arch_df.loc[arch_df["sci_score"].idxmin()]
+    cost_diff = best_row["cost_usd_month"] - base_cost
+    cost_str = (f"${abs(cost_diff):.2f}/mes mais barata"
+                if cost_diff < 0 else f"${cost_diff:.2f}/mes a mais"
+                if cost_diff > 0 else "mesmo custo")
+    story.append(Paragraph(
+        f"Melhor regiao: <b>{best_row['region']}</b> — "
+        f"<b>{reduction}% menos carbono</b> e {cost_str} vs. {base_region}.",
+        styles["highlight"]
+    ))
+
+    # Tabela Pareto
+    story.append(Spacer(1, 0.1*inch))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY, spaceAfter=8))
+    story.append(Paragraph("Solucoes Pareto-Otimas", styles["h1"]))
+    story.append(Paragraph(
+        "Nenhuma outra regiao e simultaneamente mais barata E com menor carbono.",
+        styles["caption"]
+    ))
+
+    if len(pareto_df) > 0:
+        pareto_sorted = pareto_df.sort_values("sci_score")
+        rows = []
+        for _, p in pareto_sorted.iterrows():
+            rows.append([
+                p["region"],
+                f"${p['cost_usd_month']:.2f}",
+                f"{p['sci_score']:.4f}",
+                f"{p.get('carbon_intensity', 0):.0f}",
+                f"{p['cost_usd_month'] - base_cost:+.2f}",
+            ])
+        story.append(_data_table(
+            ["Regiao", "Custo/mes", "SCI (gCO2/h)", "Grid (gCO2/kWh)", "Delta Custo ($)"],
+            rows, [130, 80, 90, 90, 90],
+        ))
+    else:
+        story.append(Paragraph("Nenhuma solucao Pareto-otima encontrada.", styles["body"]))
+
+    # Todos os cenários
+    story.append(Spacer(1, 0.2*inch))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY, spaceAfter=8))
+    story.append(Paragraph("Todas as Regioes Calculadas", styles["h1"]))
+    story.append(Paragraph("Ordenadas por SCI crescente.", styles["caption"]))
+
+    all_sorted = arch_df.sort_values("sci_score")
+    all_rows = []
+    for _, sc in all_sorted.iterrows():
+        is_p = sc.get("pareto_optimal", False)
+        all_rows.append([
+            sc["region"],
+            f"${sc['cost_usd_month']:.2f}",
+            f"{sc['sci_score']:.4f}",
+            f"{sc.get('carbon_intensity', 0):.0f}",
+            "Pareto" if is_p else "—",
+        ])
+    story.append(_data_table(
+        ["Regiao", "Custo/mes", "SCI (gCO2/h)", "Grid (gCO2/kWh)", "Status"],
+        all_rows, [130, 80, 90, 90, 90],
+    ))
+
+    # Metodologia
+    story.append(Spacer(1, 0.2*inch))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY, spaceAfter=8))
+    story.append(Paragraph("Metodologia", styles["h2"]))
+    story.append(Paragraph(
+        "O SCI total da arquitetura e a soma dos SCI individuais de cada componente "
+        "(EC2, RDS, Lambda), calculados pela formula ISO/IEC 21031:2024: "
+        "<b>SCI = (E x I + M) / R</b>. CPU fixada em 50% (baseline Cloud Carbon Footprint). "
+        "Horas fixadas em 730h/mes (operacao continua 24/7).",
+        styles["body"]
+    ))
+    story.append(Spacer(1, 0.04*inch))
+    story.append(Paragraph(
+        "Fontes: AWS Pricing Bulk API · Cloud Carbon Footprint (ThoughtWorks) · "
+        "Electricity Maps / EPA eGRID / IEA (medias anuais 2022-2023).",
+        styles["caption"]
+    ))
+
+    # Rodapé
+    story.append(Spacer(1, 0.1*inch))
     story.append(HRFlowable(width="100%", thickness=0.5, color=GRAY, spaceAfter=4))
     story.append(Paragraph(
         f"GreenArch — Carbon and Cost Architecture Advisor · ISO/IEC 21031:2024 · {now}",

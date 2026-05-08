@@ -34,10 +34,10 @@ st.markdown("""
 
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
-    background-color: #FFFFFF !important;
+    background-color: #F5F0EB !important;
     color: #111111 !important;
 }
-.stApp { background-color: #FFFFFF !important; }
+.stApp { background-color: #F5F0EB !important; }
 
 /* Margem e largura */
 .block-container {

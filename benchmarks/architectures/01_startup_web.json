@@ -1,6 +1,6 @@
 {
   "name": "Startup Web Simples",
-  "description": "Aplicacao web de pequeno porte com banco relacional. Tipico de MVPs e projetos iniciais.",
+  "description": "Aplicacao web de pequeno porte com banco relacional e roteamento de requisicoes via Lambda. Tipico de MVPs e projetos iniciais.",
   "base_region": "us-east-1",
   "components": [
     {
@@ -19,6 +19,14 @@
       "engine": "MySQL",
       "multi_az": false,
       "note": "Banco de dados relacional"
+    },
+    {
+      "type": "lambda",
+      "invocations": 1000000,
+      "duration_ms": 50,
+      "memory_mb": 128,
+      "architecture": "x86",
+      "note": "API Gateway handler e roteamento de requisicoes"
     }
   ]
 }
