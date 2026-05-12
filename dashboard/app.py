@@ -387,7 +387,7 @@ REGION_GROUPS = {
     "Europe":        ["eu-west-1", "eu-west-2", "eu-west-3", "eu-central-1", "eu-north-1", "eu-south-1"],
     "Asia Pacific":  ["ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ap-northeast-2", "ap-south-1"],
     "South America": ["sa-east-1"],
-    "Africa / ME":   ["af-south-1", "me-south-1"],
+    "África / ME":   ["af-south-1", "me-south-1"],
 }
 DEFAULT_REGIONS = ["us-east-1", "us-west-2", "eu-central-1", "eu-north-1", "eu-west-1", "sa-east-1"]
 ALL_INSTANCES = list_supported_instances()
@@ -405,67 +405,205 @@ st.markdown(f"""
 <div class="ga-header">
     <div>
         <div class="ga-wordmark">Green<span>Arch</span></div>
-        <div class="ga-tagline">Carbon &amp; Cost Intelligence for AWS</div>
+        <div class="ga-tagline">Carbono e Custo — Inteligência para AWS</div>
     </div>
     <div class="ga-badge">ISO/IEC 21031:2024</div>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Abas ───────────────────────────────────────────────────────────────────
-tab1, tab2 = st.tabs(["Instância", "Arquitetura"])
+tab0, tab1, tab2 = st.tabs(["Visão Geral", "Instância", "Arquitetura"])
 tab3 = None  # Family Comparison oculta temporariamente
 
 
 # ══════════════════════════════════════════════════════════════════════════
 # TAB 1 — INSTANCE
 # ══════════════════════════════════════════════════════════════════════════
-with tab1:
+with tab0:
+    g  = C["green"]
+    bg = C["green_glow"]
+    bd = C["green_dim"]
+    t  = C["text"]
+    t2 = C["text2"]
+    t3 = C["text3"]
+    br = C["border"]
+    b3 = C["bg3"]
 
-    # ── Explicação SCI ────────────────────────────────────────────────────
-    sci_color   = C["green"]
-    sci_bg      = C["green_glow"]
-    sci_border  = C["green_dim"]
-    sci_text    = C["text"]
-    sci_text2   = C["text2"]
-    sci_text3   = C["text3"]
+    # ── O que é o GreenArch ───────────────────────────────────────────────
     st.markdown(f"""
-    <div style="background:{sci_bg};border:1px solid {sci_border};
-                border-left:3px solid {sci_color};border-radius:6px;
-                padding:18px 22px;margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:600;color:{sci_color};margin-bottom:8px;
+    <div style="padding:28px 0 8px 0;">
+        <div style="font-size:28px;font-weight:700;color:{t};font-family:'IBM Plex Sans',sans-serif;margin-bottom:10px;">
+            O que é o GreenArch?
+        </div>
+        <div style="font-size:15px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;max-width:820px;">
+            O <b style="color:{t}">GreenArch</b> é uma ferramenta que calcula o custo e o impacto de carbono
+            de arquiteturas AWS <b style="color:{t}">antes do deploy</b>, ajudando desenvolvedores e equipes
+            a escolher onde e como hospedar seus sistemas de forma mais eficiente e sustentável.<br><br>
+            O GreenArch responde a seguinte pergunta:
+        </div>
+        <div style="margin:20px 0;padding:16px 24px;background:{bg};border-left:3px solid {g};
+                    border-radius:6px;font-size:16px;color:{t};font-style:italic;font-family:'IBM Plex Sans',sans-serif;">
+            "Onde devo hospedar esta arquitetura para minimizar o carbono sem aumentar o custo?"
+        </div>
+        <div style="font-size:15px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;max-width:820px;">
+            Os cálculos seguem o padrão <b style="color:{t}">ISO/IEC 21031:2024</b> Software Carbon Intensity (SCI)
+            usando dados públicos da AWS Pricing API, Cloud Carbon Footprint (ThoughtWorks),
+            Electricity Maps, EPA eGRID e Boavizta. Nenhuma conta AWS é necessária.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<hr style='border-color:{};margin:8px 0 24px 0'>".format(C["border"]), unsafe_allow_html=True)
+
+    # ── O que é o SCI ────────────────────────────────────────────────────
+    st.markdown(f"""
+    <div style="background:{bg};border:1px solid {bd};
+                border-left:3px solid {g};border-radius:6px;
+                padding:20px 24px;margin-bottom:24px;">
+        <div style="font-size:13px;font-weight:600;color:{g};margin-bottom:10px;
                     font-family:'IBM Plex Sans',sans-serif;text-transform:uppercase;letter-spacing:0.8px;">
-            O que é o SCI score?
+            O padrão SCI — Software Carbon Intensity
         </div>
-        <div style="font-size:14px;color:{sci_text};line-height:1.7;font-family:'IBM Plex Sans',sans-serif;">
+        <div style="font-size:14px;color:{t};line-height:1.7;font-family:'IBM Plex Sans',sans-serif;margin-bottom:14px;">
             O <b>Software Carbon Intensity (SCI)</b> é um padrão ISO (21031:2024) que mede
-            a pegada de carbono de um software por unidade de uso. Aqui, a unidade é
-            <b>uma hora de compute</b>.
+            a pegada de carbono de um software por unidade de uso. Aqui, a unidade é <b>uma hora de uso da instância</b>.
         </div>
-        <div style="margin:14px 0 10px 0;font-size:20px;font-weight:700;
-                    color:{sci_color};letter-spacing:1px;text-align:center;
+        <div style="margin:14px 0 16px 0;font-size:22px;font-weight:700;
+                    color:{g};letter-spacing:1px;text-align:center;
                     font-family:'IBM Plex Mono',monospace;">
             SCI = ( E &times; I + M ) / R
         </div>
-        <div style="display:flex;gap:32px;flex-wrap:wrap;">
-            <div style="font-size:12px;color:{sci_text};min-width:200px;">
-                <b style="color:{sci_color};font-size:15px;">E</b> — Energia consumida (kWh/h)<br>
-                <span style="color:{sci_text2};font-size:11px;">Fonte: Cloud Carbon Footprint (ThoughtWorks), baseado em benchmarks SPECpower</span>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div style="font-size:12px;color:{t};min-width:200px;">
+                <b style="color:{g};font-size:15px;">E</b> — Energia consumida (kWh/h)<br>
+                <span style="color:{t2};font-size:11px;">Fonte: Cloud Carbon Footprint (ThoughtWorks), baseado em benchmarks SPECpower</span>
             </div>
-            <div style="font-size:12px;color:{sci_text};min-width:200px;">
-                <b style="color:{sci_color};font-size:15px;">I</b> — Carbon intensity do grid elétrico (gCO₂/kWh)<br>
-                <span style="color:{sci_text2};font-size:11px;">Fonte: Electricity Maps, EPA eGRID, IEA — médias anuais por região AWS</span>
+            <div style="font-size:12px;color:{t};min-width:200px;">
+                <b style="color:{g};font-size:15px;">I</b> — Intensidade de carbono do grid elétrico (gCO₂/kWh)<br>
+                <span style="color:{t2};font-size:11px;">Fonte: Electricity Maps, EPA eGRID, IEA — médias anuais por região AWS</span>
             </div>
-            <div style="font-size:12px;color:{sci_text};min-width:200px;">
-                <b style="color:{sci_color};font-size:15px;">M</b> — Carbono embutido do hardware (gCO₂/h)<br>
-                <span style="color:{sci_text2};font-size:11px;">Emissões de fabricação amortizadas pela vida útil. Fonte: Boavizta dataset</span>
+            <div style="font-size:12px;color:{t};min-width:200px;">
+                <b style="color:{g};font-size:15px;">M</b> — Carbono embutido do hardware (gCO₂/h)<br>
+                <span style="color:{t2};font-size:11px;">Emissões de fabricação amortizadas pela vida útil. Fonte: Boavizta dataset</span>
             </div>
-            <div style="font-size:12px;color:{sci_text};min-width:120px;">
-                <b style="color:{sci_color};font-size:15px;">R</b> — Unidade funcional<br>
-                <span style="color:{sci_text2};font-size:11px;">1 hora de compute nesta análise</span>
+            <div style="font-size:12px;color:{t};min-width:120px;">
+                <b style="color:{g};font-size:15px;">R</b> — Unidade funcional<br>
+                <span style="color:{t2};font-size:11px;">1 hora de uso</span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ── Como usar ─────────────────────────────────────────────────────────
+    st.markdown(f"""
+    <div style="font-size:20px;font-weight:700;color:{t};font-family:'IBM Plex Sans',sans-serif;margin-bottom:16px;">
+        Como usar o GreenArch
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_a, col_b = st.columns(2, gap="large")
+
+    with col_a:
+        st.markdown(f"""
+        <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;height:100%;">
+            <div style="font-size:13px;font-weight:600;color:{g};text-transform:uppercase;
+                        letter-spacing:0.8px;margin-bottom:12px;font-family:'IBM Plex Sans',sans-serif;">
+                Aba — Instância
+            </div>
+            <div style="font-size:13px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;">
+                Compare o SCI e o custo de uma <b style="color:{t}">instância EC2 específica</b>
+                entre diferentes regiões AWS.<br><br>
+                <b style="color:{t}">Como usar:</b><br>
+                1. Selecione a instância base (ex: c5.4xlarge)<br>
+                2. Ajuste a utilização de CPU e as horas de uso mensais<br>
+                3. Escolha as regiões que deseja comparar<br>
+                4. Clique em <b style="color:{t}">Calcular</b><br><br>
+                O resultado mostra o <b style="color:{t}">Pareto-front</b> — as regiões onde
+                não existe outra opção simultaneamente mais barata e com menos carbono.
+                Use o <b style="color:{t}">Índice de Eficiência</b> para ponderar entre
+                custo e carbono conforme sua prioridade.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_b:
+        st.markdown(f"""
+        <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;height:100%;">
+            <div style="font-size:13px;font-weight:600;color:{g};text-transform:uppercase;
+                        letter-spacing:0.8px;margin-bottom:12px;font-family:'IBM Plex Sans',sans-serif;">
+                Aba — Arquitetura
+            </div>
+            <div style="font-size:13px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;">
+                Compare o SCI e o custo de uma <b style="color:{t}">arquitetura completa</b>
+                (combinação de EC2, RDS e Lambda) entre regiões.<br><br>
+                <b style="color:{t}">Como usar:</b><br>
+                1. Carregue uma arquitetura de benchmark pronta (ex: API REST) ou monte a sua<br>
+                2. Para montar: adicione componentes EC2, RDS e Lambda com seus parâmetros<br>
+                3. Selecione a região base e as regiões de comparação<br>
+                4. Clique em <b style="color:{t}">Calcular arquitetura</b><br><br>
+                O resultado mostra o SCI total da arquitetura em cada região,
+                com o mesmo Pareto-front e Índice de Eficiência da aba de instância.
+                É possível exportar os resultados em PDF.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+
+    # ── O que é o Pareto-front ───────────────────────────────────────────
+    st.markdown(f"""
+    <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;margin-top:4px;">
+        <div style="font-size:13px;font-weight:600;color:{g};text-transform:uppercase;
+                    letter-spacing:0.8px;margin-bottom:10px;font-family:'IBM Plex Sans',sans-serif;">
+            O que é o Pareto-front?
+        </div>
+        <div style="font-size:13px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;">
+            O <b style="color:{t}">Pareto-front</b> é um conceito de otimização multi-objetivo.
+            Em vez de escolher apenas "o mais barato" ou "o com menos carbono",
+            ele identifica todas as soluções onde <b style="color:{t}">não existe outra opção que seja
+            simultaneamente mais barata e com menos carbono</b>.<br><br>
+            Exemplo: se Oregon custa igual a Virginia mas tem 34% menos carbono,
+            não há nenhum motivo racional para escolher Virginia — ela é <b style="color:{t}">dominada</b>.
+            Oregon está no Pareto-front; Virginia não.<br><br>
+            <span style="color:{t3};font-size:12px;">
+            No gráfico: círculos verdes = Pareto-ótimo · cinza = dominado · estrela laranja = cenário base escolhido
+            </span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # ── Fontes de dados ───────────────────────────────────────────────────
+    st.markdown(f"""
+    <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;margin-top:4px;">
+        <div style="font-size:13px;font-weight:600;color:{g};text-transform:uppercase;
+                    letter-spacing:0.8px;margin-bottom:10px;font-family:'IBM Plex Sans',sans-serif;">
+            Fontes de dados
+        </div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+            <div style="font-size:12px;color:{t2};min-width:200px;line-height:1.7;">
+                <b style="color:{t}">Preços AWS</b><br>
+                AWS Pricing Bulk API — dados em tempo real, sem autenticação
+            </div>
+            <div style="font-size:12px;color:{t2};min-width:200px;line-height:1.7;">
+                <b style="color:{t}">Consumo de energia</b><br>
+                Cloud Carbon Footprint (ThoughtWorks) — benchmarks SPECpower
+            </div>
+            <div style="font-size:12px;color:{t2};min-width:200px;line-height:1.7;">
+                <b style="color:{t}">Intensidade de carbono do grid</b><br>
+                Electricity Maps, EPA eGRID, IEA — médias anuais 2022–2023
+            </div>
+            <div style="font-size:12px;color:{t2};min-width:200px;line-height:1.7;">
+                <b style="color:{t}">Carbono embutido do hardware</b><br>
+                Boavizta dataset — ciclo de vida dos servidores
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+with tab1:
 
     col_main, col_side = st.columns([3, 1], gap="large")
 
@@ -597,7 +735,7 @@ with tab1:
             best_sci  = s["best_sci_scenario"]
             best_cost = s["best_cost_scenario"]
             if best_sci:
-                c2.metric("Menor SCI", f"{best_sci['sci_score']:.4f} gCO₂/h",
+                c2.metric("Menor SCI encontrado", f"{best_sci['sci_score']:.4f} gCO₂/h",
                           f"{best_sci['instance_type']} · {best_sci['region']}")
             if best_cost:
                 c3.metric("Menor custo", f"${best_cost['cost_usd_month']:.2f}/mo",
@@ -609,7 +747,7 @@ with tab1:
             if best_sci and base:
                 sci_gain  = s.get("sci_reduction_vs_base", 0)
                 cost_diff = best_sci["cost_usd_month"] - base["cost_usd_month"]
-                custo_str = (f"${abs(cost_diff):.2f}/mês mais barata" if cost_diff < 0
+                custo_str = (f"${abs(cost_diff):.2f}/mês mais barato" if cost_diff < 0
                              else f"${cost_diff:.2f}/mês a mais" if cost_diff > 0
                              else "mesmo custo")
                 if sci_gain > 0:
@@ -650,7 +788,7 @@ with tab1:
                             "sci_score", "score", "Status"]].sort_values(
                 "score", ascending=False).head(10).rename(columns={
                     "instance_type": "Instância", "region": "Região",
-                    "cost_usd_month": "Cost/mo", "sci_score": "SCI (gCO₂/h)",
+                    "cost_usd_month": "Custo/mês", "sci_score": "SCI (gCO₂/h)",
                     "score": "Score",
                 })
 
@@ -661,7 +799,7 @@ with tab1:
 
             st.dataframe(
                 df_score.style.apply(hl_pareto, axis=1).format({
-                    "Cost/mo": "${:.2f}", "SCI (gCO₂/h)": "{:.4f}", "Score": "{:.1f}",
+                    "Custo/mês": "${:.2f}", "SCI (gCO₂/h)": "{:.4f}", "Score": "{:.1f}",
                 }),
                 use_container_width=True, hide_index=True,
             )
@@ -683,7 +821,7 @@ with tab1:
                     Cada ponto no gráfico é um cenário (instância + região). Um cenário é
                     <b style="color:{C["green"]}">Pareto ótimo</b> quando <b>não existe nenhum outro
                     cenário que seja simultaneamente mais barato E com menos carbono</b>.
-                    Mover para qualquer solução Pareto ótima é uma melhoria estrita.<br>
+                    Escolher qualquer solução Pareto ótima garante que não há outra opção melhor nas duas dimensões ao mesmo tempo.<br>
                     <span style="color:{C["text3"]};font-size:12px;">
                     Círculo = família base · Diamante = família equivalente · Estrela = cenário atual
                     </span>
@@ -750,7 +888,7 @@ with tab1:
             st.plotly_chart(fig1, use_container_width=True)
 
             # Tabela Pareto
-            st.markdown('<div class="ga-section">Pareto Optimal Solutions</div>',
+            st.markdown('<div class="ga-section">Soluções Pareto-Ótimas</div>',
                         unsafe_allow_html=True)
             st.caption("Nenhuma outra combinação é simultaneamente mais barata E com menos carbono.")
             if pareto:
@@ -763,7 +901,7 @@ with tab1:
                 pareto_df = _pdf[_cols_available].rename(columns={
                     "instance_type": "Instância", "region": "Região",
                     "cost_usd_month": "Custo/mês", "sci_score": "SCI",
-                    "carbon_intensity": "Grid (gCO₂/kWh)",
+                    "carbon_intensity": "Intensidade de carbono (gCO₂/kWh)",
                     "operational_carbon": "C. Operacional",
                 }).sort_values("SCI")
                 fmt = {k: v for k, v in {
@@ -783,12 +921,12 @@ with tab1:
                 full_df = df1[["instance_type", "region", "cost_usd_month",
                                "sci_score", "carbon_intensity", "Status"]].rename(columns={
                     "instance_type": "Instância", "region": "Região",
-                    "cost_usd_month": "Cost/mo", "sci_score": "SCI",
-                    "carbon_intensity": "Grid (gCO₂/kWh)",
+                    "cost_usd_month": "Custo/mês", "sci_score": "SCI",
+                    "carbon_intensity": "Intensidade de carbono (gCO₂/kWh)",
                 }).sort_values("SCI")
                 st.dataframe(
                     full_df.style.apply(hl_pareto, axis=1).format({
-                        "Cost/mo": "${:.2f}", "SCI": "{:.4f}", "Grid (gCO₂/kWh)": "{:.0f}",
+                        "Custo/mês": "${:.2f}", "SCI": "{:.4f}", "Grid (gCO₂/kWh)": "{:.0f}",
                     }),
                     use_container_width=True, hide_index=True,
                 )
@@ -806,13 +944,13 @@ with tab1:
                           (" (base)" if r["is_base"] else ""), axis=1)
 
             show_embodied = st.checkbox(
-                "Incluir carbono embutido (M) — fabricação do hardware",
+                "Incluir carbono embutido (M) — emissões de fabricação do hardware",
                 value=False, key="show_embodied"
             )
             if show_embodied:
                 st.caption(
-                    "O carbono embutido (M) é fixo em todas as regiões — representa o custo de "
-                    "fabricação do hardware amortizado pela vida útil do servidor. Não varia com a escolha de região."
+                    "O carbono embutido (M) é constante em todas as regiões — representa as emissões de "
+                    "fabricação do hardware amortizadas pela vida útil do servidor. Não varia com a escolha de região."
                 )
 
             fig_bar = go.Figure()
@@ -842,7 +980,7 @@ with tab1:
                         st.session_state["pdf1_bytes"] = pdf_bytes
                         st.session_state["pdf1_label"] = label1
                     except Exception as e:
-                        st.error(f"Error: {e}")
+                        st.error(f"Erro: {e}")
 
             if "pdf1_bytes" in st.session_state:
                 st.download_button(
@@ -905,7 +1043,7 @@ with tab2:
                                 "hours": 730,
                                 "cpu": 0.5,
                                 "os": "Linux",
-                                "label": f"EC2  {c.get('instance')} — 730h · 50% CPU",
+                                "label": f"EC2 {c.get('instance')} — 730h · 50% CPU",
                             })
                         elif ct == "rds":
                             loaded.append({
@@ -915,7 +1053,7 @@ with tab2:
                                 "cpu": 0.5,
                                 "multi_az": c.get("multi_az", False),
                                 "hours": 730,
-                                "label": f"RDS  {c.get('instance')}  {c.get('engine','MySQL')}",
+                                "label": f"RDS {c.get('instance')} — {c.get('engine','MySQL')}",
                             })
                         elif ct == "lambda":
                             inv = c.get("invocations", 1000000)
@@ -925,7 +1063,7 @@ with tab2:
                                 "duration_ms": c.get("duration_ms", 200),
                                 "memory_mb": c.get("memory_mb", 512),
                                 "architecture": c.get("architecture", "x86"),
-                                "label": f"Lambda  {inv/1e6:.1f}M inv  {c.get('duration_ms',200)}ms  {c.get('memory_mb',512)}MB",
+                                "label": f"Lambda — {inv/1e6:.1f}M invocações  {c.get('duration_ms',200)}ms  {c.get('memory_mb',512)}MB",
                             })
                     st.session_state["arch_components"] = loaded
                     st.session_state.pop("arch_results", None)
@@ -947,9 +1085,9 @@ with tab2:
             st.session_state["arch_components"] = []
 
         st.markdown('<div class="ga-section">Adicionar componente</div>', unsafe_allow_html=True)
-        with st.expander("+ Novo componente",
+        with st.expander("+ Adicionar componente",
                           expanded=len(st.session_state["arch_components"]) == 0):
-            comp_type = st.selectbox("Tipo", ["EC2", "RDS", "Lambda"], key="new_comp_type")
+            comp_type = st.selectbox("Tipo de componente", ["EC2", "RDS", "Lambda"], key="new_comp_type")
 
             if comp_type == "EC2":
                 new_inst  = st.selectbox("Instância", ALL_INSTANCES, key="new_ec2_inst")
@@ -973,11 +1111,11 @@ with tab2:
                                            1.0, 0.1, key="new_lambda_inv")
                 new_dur  = st.number_input("Avg duration (ms)", 1, 30000,
                                            200, key="new_lambda_dur")
-                new_mem  = st.selectbox("Memória (MB)",
+                new_mem  = st.selectbox("Memória Lambda (MB)",
                                         [128, 256, 512, 1024, 2048, 4096],
                                         index=2, key="new_lambda_mem")
-                new_arch = st.selectbox("Arch", ["x86", "arm"], key="new_lambda_arch")
-                preview  = f"Lambda  {new_inv:.1f}M inv  {new_dur}ms  {new_mem}MB"
+                new_arch = st.selectbox("Arquitetura", ["x86", "arm"], key="new_lambda_arch")
+                preview  = f"Lambda — {new_inv:.1f}M invocações  {new_dur}ms  {new_mem}MB"
 
             st.caption(preview)
             if st.button("Adicionar", type="primary", key="add_comp"):
@@ -1087,17 +1225,17 @@ with tab2:
             cost_diff = best_a["cost_usd_month"] - base_cost_a
 
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("SCI base", f"{base_sci_a:.4f} gCO₂/h", arch_base)
-            m2.metric("Menor SCI", f"{best_a['sci_score']:.4f} gCO₂/h", best_a["region"])
-            m3.metric("Redução de SCI", f"{reduction}%", f"vs. {arch_base}")
-            m4.metric("Custo base", f"${base_cost_a:.2f}/mo")
+            m1.metric("SCI — Região base", f"{base_sci_a:.4f} gCO₂/h", arch_base)
+            m2.metric("Menor SCI encontrado", f"{best_a['sci_score']:.4f} gCO₂/h", best_a["region"])
+            m3.metric("Redução de carbono", f"{reduction}%", f"vs. {arch_base}")
+            m4.metric("Custo — Região base", f"${base_cost_a:.2f}/mo")
 
             if reduction > 0:
-                custo_str = (f"${abs(cost_diff):.2f}/mês mais barata" if cost_diff < 0
+                custo_str = (f"${abs(cost_diff):.2f}/mês mais barato" if cost_diff < 0
                              else f"${cost_diff:.2f}/mês a mais" if cost_diff > 0
                              else "mesmo custo")
                 st.markdown(
-                    f'<div class="ga-banner">Melhor região: <b>{best_a["region"]}</b> — '
+                    f'<div class="ga-banner">Melhor região para esta arquitetura: <b>{best_a["region"]}</b> — '
                     f'<b>{reduction}% menos carbono</b> e {custo_str} vs. {arch_base}.</div>',
                     unsafe_allow_html=True
                 )
@@ -1125,8 +1263,8 @@ with tab2:
                         border-radius:6px;padding:14px 18px;margin-bottom:12px;">
                 <div style="font-size:13px;color:{C["text2"]};line-height:1.7;font-family:'IBM Plex Sans',sans-serif;">
                     Cada ponto representa esta arquitetura hospedada em uma região diferente.
-                    <b style="color:{C["green"]}">Pareto ótimo</b> = não existe outra região
-                    simultaneamente mais barata E com menos carbono.
+                    <b style="color:{C["green"]}">Pareto ótimo</b> significa que não existe outra região
+                    simultaneamente mais barata e com menos carbono.
                 </div>
             </div>
             ''', unsafe_allow_html=True)
@@ -1331,11 +1469,11 @@ if tab3 is not None:
                               "Instância": inst,
                               "Family": spec["family"],
                               "Processor": spec["proc"],
-                              "Tipo": spec["type"],
+                              "Tipo de componente": spec["type"],
                               "vCPU": spec["vcpu"],
                               "Memory (GiB)": spec["mem_gib"],
                               "SCI (gCO2/h)": r["sci_score_gco2_per_hour"],
-                              "Cost/mo": r["cost_usd_month"],
+                              "Custo/mês": r["cost_usd_month"],
                               "Operational C.": r["operational_carbon_gco2_hour"],
                               "Embodied C.": r["embodied_carbon_gco2_hour"],
                               "Energy (kWh/h)": r["energy_kwh_hour_with_pue"],
@@ -1355,7 +1493,7 @@ if tab3 is not None:
           fam_mem    = st.session_state["fam_res_mem"]
 
           best_sci  = fam_df.loc[fam_df["SCI (gCO2/h)"].idxmin()]
-          best_cost = fam_df.loc[fam_df["Cost/mo"].idxmin()]
+          best_cost = fam_df.loc[fam_df["Custo/mês"].idxmin()]
           worst_sci = fam_df.loc[fam_df["SCI (gCO2/h)"].idxmax()]
           sci_gap   = round((worst_sci["SCI (gCO2/h)"] - best_sci["SCI (gCO2/h)"]) /
                             worst_sci["SCI (gCO2/h)"] * 100, 1)
@@ -1372,9 +1510,9 @@ if tab3 is not None:
           )
 
           m1, m2, m3, m4 = st.columns(4)
-          m1.metric("Menor SCI", f"{best_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
+          m1.metric("Menor SCI encontrado", f"{best_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
                     best_sci["Instância"])
-          m2.metric("Menor custo", f"${best_cost['Cost/mo']:.2f}/mo",
+          m2.metric("Menor custo", f"${best_cost['Custo/mês']:.2f}/mo",
                     best_cost["Instância"])
           m3.metric("Highest SCI", f"{worst_sci['SCI (gCO2/h)']:.4f} gCO₂/h",
                     worst_sci["Instância"])
@@ -1408,7 +1546,7 @@ if tab3 is not None:
           for proc in fam_df["Processor"].unique():
               sub = fam_df[fam_df["Processor"] == proc]
               fig_fam.add_trace(go.Scatter(
-                  x=sub["Cost/mo"], y=sub["SCI (gCO2/h)"],
+                  x=sub["Custo/mês"], y=sub["SCI (gCO2/h)"],
                   mode="markers+text",
                   name=proc,
                   text=sub["Instância"],
@@ -1419,7 +1557,7 @@ if tab3 is not None:
                       color=proc_colors.get(proc, "#888888"),
                       line=dict(width=0.5, color="#0D0F0E"),
                   ),
-                  customdata=sub[["Family", "Tipo", "Energy (kWh/h)"]].values,
+                  customdata=sub[["Family", "Tipo de componente", "Energy (kWh/h)"]].values,
                   hovertemplate=(
                       "<b>%{text}</b><br>"
                       "Processor: " + proc + "<br>"
@@ -1466,14 +1604,14 @@ if tab3 is not None:
           st.markdown('<div class="ga-section">Full comparison</div>',
                       unsafe_allow_html=True)
           display_fam = fam_df[[
-              "Instância", "Family", "Processor", "Tipo",
-              "SCI (gCO2/h)", "Cost/mo", "Operational C.", "Embodied C.", "Energy (kWh/h)"
+              "Instância", "Family", "Processor", "Tipo de componente",
+              "SCI (gCO2/h)", "Custo/mês", "Operational C.", "Embodied C.", "Energy (kWh/h)"
           ]].sort_values("SCI (gCO2/h)")
           st.dataframe(
               display_fam.style
                   .format({
                       "SCI (gCO2/h)": "{:.4f}",
-                      "Cost/mo": "${:.2f}",
+                      "Custo/mês": "${:.2f}",
                       "Operational C.": "{:.4f}",
                       "Embodied C.": "{:.2f}",
                       "Energy (kWh/h)": "{:.5f}",
@@ -1489,7 +1627,7 @@ st.markdown(
     f'color:{C["text3"]}; display:flex; justify-content:space-between; padding:4px 0;">'
     f'<span>AWS Pricing Bulk API  ·  Electricity Maps  ·  EPA eGRID  ·  '
     f'Cloud Carbon Footprint (ThoughtWorks)</span>'
-    f'<span>Carbon intensity based on 2022-2023 annual averages.</span>'
+    f'<span>Carbon intensity baseada em médias anuais 2022–2023. Fontes: Electricity Maps, EPA eGRID, IEA.</span>'
     f'</div>',
     unsafe_allow_html=True
 )
