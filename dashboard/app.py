@@ -25,13 +25,45 @@ from core.report_generator import generate_report
 
 # ── Page config ───────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="GreenArch",
-    page_icon=None,
+    page_title="GreenArch — Carbon and Cost Intelligence for AWS",
+    page_icon="🌿",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # Tema fixo — dark mode
+
+# ── Meta tags via JavaScript injection (Streamlit não suporta <head> direto) ──
+st.markdown("""
+<script>
+(function() {
+    // Meta description
+    var meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'description';
+        document.head.appendChild(meta);
+    }
+    meta.content = 'GreenArch calcula o Software Carbon Intensity (SCI) e o custo de arquiteturas AWS antes do deploy. Compare regiões, visualize o Pareto-front custo × carbono e tome decisões mais sustentáveis.';
+
+    // Keywords
+    var kw = document.querySelector('meta[name="keywords"]');
+    if (!kw) { kw = document.createElement('meta'); kw.name = 'keywords'; document.head.appendChild(kw); }
+    kw.content = 'AWS, carbon intensity, SCI, Software Carbon Intensity, cloud sustainability, GreenOps, FinOps, ISO 21031';
+
+    // Preconnect para fontes
+    ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'].forEach(function(href) {
+        if (!document.querySelector('link[href="' + href + '"]')) {
+            var link = document.createElement('link');
+            link.rel = 'preconnect';
+            link.href = href;
+            if (href.includes('gstatic')) link.crossOrigin = 'anonymous';
+            document.head.appendChild(link);
+        }
+    });
+})();
+</script>
+""", unsafe_allow_html=True)
 
 # ── CSS injection — sistema de design completo ────────────────────────────
 def inject_css(dark: bool):
@@ -58,6 +90,7 @@ def inject_css(dark: bool):
     st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+    /* font-display: swap garantido via display=swap na URL */
 
     /* ── Reset & base ── */
     html, body, [class*="css"] {{
@@ -390,6 +423,117 @@ REGION_GROUPS = {
     "África / ME":   ["af-south-1", "me-south-1"],
 }
 DEFAULT_REGIONS = ["us-east-1", "us-west-2", "eu-central-1", "eu-north-1", "eu-west-1", "sa-east-1"]
+
+# Regiões AWS com 100% energia renovável (matched) — Fonte: Amazon Sustainability Report 2024
+# https://sustainability.aboutamazon.com/products-services/aws-cloud
+RENEWABLE_REGIONS = {
+    "us-east-1", "us-east-2", "us-west-1", "us-west-2",
+    "ca-central-1", "eu-west-1", "eu-west-2", "eu-west-3",
+    "eu-central-1", "eu-north-1", "eu-south-1",
+    "ap-south-1", "ap-northeast-1", "ap-northeast-2",
+    "sa-east-1",
+}
+# Latência inter-região AWS em ms (P50, média 7 dias) — Fonte: CloudPing.co
+# https://www.cloudping.co — medições em tempo real via TCP entre regiões AWS
+INTER_REGION_LATENCY = {
+    ("us-east-1",   "us-east-1"):    1,
+    ("us-east-1",   "us-east-2"):   13,
+    ("us-east-1",   "us-west-1"):   61,
+    ("us-east-1",   "us-west-2"):   68,
+    ("us-east-1",   "ca-central-1"): 17,
+    ("us-east-1",   "eu-west-1"):   76,
+    ("us-east-1",   "eu-west-2"):   77,
+    ("us-east-1",   "eu-west-3"):   84,
+    ("us-east-1",   "eu-central-1"): 91,
+    ("us-east-1",   "eu-north-1"):  112,
+    ("us-east-1",   "eu-south-1"):  102,
+    ("us-east-1",   "ap-south-1"):  214,
+    ("us-east-1",   "ap-northeast-1"): 149,
+    ("us-east-1",   "ap-northeast-2"): 181,
+    ("us-east-1",   "ap-southeast-1"): 219,
+    ("us-east-1",   "ap-southeast-2"): 207,
+    ("us-east-1",   "sa-east-1"):   114,
+    ("us-east-1",   "af-south-1"):  225,
+    ("us-east-1",   "me-south-1"):  165,
+    ("us-west-2",   "us-east-1"):   68,
+    ("us-west-2",   "us-west-1"):   21,
+    ("us-west-2",   "ca-central-1"): 61,
+    ("us-west-2",   "eu-west-1"):   118,
+    ("us-west-2",   "eu-central-1"): 144,
+    ("us-west-2",   "eu-north-1"):  155,
+    ("us-west-2",   "ap-south-1"):  233,
+    ("us-west-2",   "ap-northeast-1"): 105,
+    ("us-west-2",   "ap-southeast-1"): 165,
+    ("us-west-2",   "ap-southeast-2"): 145,
+    ("us-west-2",   "sa-east-1"):   184,
+    ("eu-central-1","us-east-1"):   91,
+    ("eu-central-1","eu-west-1"):   21,
+    ("eu-central-1","eu-north-1"):  23,
+    ("eu-central-1","eu-west-2"):   15,
+    ("eu-central-1","eu-west-3"):   10,
+    ("eu-north-1",  "us-east-1"):   112,
+    ("eu-north-1",  "eu-west-1"):   37,
+    ("eu-north-1",  "eu-central-1"): 23,
+    ("sa-east-1",   "us-east-1"):   114,
+    ("sa-east-1",   "eu-west-1"):   178,
+    ("ap-south-1",  "us-east-1"):   214,
+    ("ap-south-1",  "eu-central-1"): 133,
+    ("af-south-1",  "eu-west-1"):   157,
+    ("me-south-1",  "eu-central-1"): 85,
+    # sa-east-1 como origem
+    ("sa-east-1",   "us-west-2"):   184,
+    ("sa-east-1",   "eu-west-1"):   178,
+    ("sa-east-1",   "eu-west-2"):   188,
+    ("sa-east-1",   "eu-central-1"): 204,
+    ("sa-east-1",   "eu-north-1"):  223,
+    ("sa-east-1",   "ca-central-1"): 126,
+    ("sa-east-1",   "ap-south-1"):  323,
+    ("sa-east-1",   "ap-northeast-1"): 260,
+    ("sa-east-1",   "ap-southeast-1"): 329,
+    ("sa-east-1",   "af-south-1"):  337,
+    # eu-north-1 como origem
+    ("eu-north-1",  "us-west-2"):   155,
+    ("eu-north-1",  "us-east-2"):   122,
+    ("eu-north-1",  "ca-central-1"): 104,
+    ("eu-north-1",  "eu-west-2"):   30,
+    ("eu-north-1",  "eu-west-3"):   33,
+    ("eu-north-1",  "eu-south-1"):  32,
+    ("eu-north-1",  "ap-south-1"):  145,
+    ("eu-north-1",  "ap-northeast-1"): 249,
+    ("eu-north-1",  "sa-east-1"):   223,
+    ("eu-north-1",  "af-south-1"):  172,
+    ("eu-north-1",  "me-south-1"):  104,
+    # eu-west-1 como origem
+    ("eu-west-1",   "us-west-2"):   118,
+    ("eu-west-1",   "us-east-2"):   79,
+    ("eu-west-1",   "ca-central-1"): 69,
+    ("eu-west-1",   "eu-north-1"):  37,
+    ("eu-west-1",   "eu-central-1"): 21,
+    ("eu-west-1",   "ap-south-1"):  149,
+    ("eu-west-1",   "ap-northeast-1"): 202,
+    ("eu-west-1",   "sa-east-1"):   178,
+    # eu-central-1 como origem (complementos)
+    ("eu-central-1","sa-east-1"):   204,
+    ("eu-central-1","ap-south-1"):  130,
+    ("eu-central-1","ap-northeast-1"): 230,
+    ("eu-central-1","ap-southeast-1"): 160,
+    ("eu-central-1","af-south-1"):  153,
+    ("eu-central-1","me-south-1"):  85,
+    # ap-south-1 como origem (complementos)
+    ("ap-south-1",  "eu-west-1"):   149,
+    ("ap-south-1",  "eu-north-1"):  145,
+    ("ap-south-1",  "ap-northeast-1"): 129,
+    ("ap-south-1",  "ap-southeast-1"): 63,
+    ("ap-south-1",  "sa-east-1"):   323,
+    ("ap-south-1",  "af-south-1"):  157,
+}
+
+def get_latency(origin, dest):
+    v = INTER_REGION_LATENCY.get((origin, dest))
+    if v is None:
+        v = INTER_REGION_LATENCY.get((dest, origin))
+    return v
+
 ALL_INSTANCES = list_supported_instances()
 RDS_INSTANCES = [
     "db.t3.micro", "db.t3.small", "db.t3.medium", "db.t3.large",
@@ -437,16 +581,17 @@ with tab0:
         </div>
         <div style="font-size:15px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;max-width:820px;">
             O <b style="color:{t}">GreenArch</b> é uma ferramenta que calcula o custo e o impacto de carbono
-            de arquiteturas AWS <b style="color:{t}">antes do deploy</b>, ajudando desenvolvedores e equipes
+            de arquiteturas AWS <b style="color:{t}">antes do deploy</b> — ajudando desenvolvedores e equipes
             a escolher onde e como hospedar seus sistemas de forma mais eficiente e sustentável.<br><br>
-            O GreenArch responde a seguinte pergunta:
+            A maioria das ferramentas de nuvem mostra apenas o custo histórico, depois que os recursos
+            já estão rodando. O GreenArch responde a pergunta que nenhuma outra ferramenta responde:
         </div>
         <div style="margin:20px 0;padding:16px 24px;background:{bg};border-left:3px solid {g};
                     border-radius:6px;font-size:16px;color:{t};font-style:italic;font-family:'IBM Plex Sans',sans-serif;">
             "Onde devo hospedar esta arquitetura para minimizar o carbono sem aumentar o custo?"
         </div>
         <div style="font-size:15px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;max-width:820px;">
-            Os cálculos seguem o padrão <b style="color:{t}">ISO/IEC 21031:2024</b> Software Carbon Intensity (SCI)
+            Os cálculos seguem o padrão <b style="color:{t}">ISO/IEC 21031:2024</b> — Software Carbon Intensity (SCI) —
             usando dados públicos da AWS Pricing API, Cloud Carbon Footprint (ThoughtWorks),
             Electricity Maps, EPA eGRID e Boavizta. Nenhuma conta AWS é necessária.
         </div>
@@ -574,6 +719,114 @@ with tab0:
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
+    # ── Quando a otimização de região faz sentido ─────────────────────────
+    st.markdown(f"""
+    <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;margin-top:4px;">
+        <div style="font-size:13px;font-weight:600;color:{g};text-transform:uppercase;
+                    letter-spacing:0.8px;margin-bottom:10px;font-family:'IBM Plex Sans',sans-serif;">
+            Quando a otimização de região faz sentido?
+        </div>
+        <div style="font-size:13px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;margin-bottom:16px;">
+            Migrar para uma região de menor carbono como <b style="color:{t}">eu-north-1</b> (Estocolmo)
+            reduz o SCI em até 43% — mas introduz latência de rede que pode ser incompatível com
+            algumas aplicações. O GreenArch exibe a latência junto com o SCI e o custo para que
+            essa decisão seja tomada com informação completa.
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+            <div style="background:{bg};border:1px solid {bd};border-radius:6px;
+                        padding:14px 16px;flex:1;min-width:200px;">
+                <div style="font-size:12px;font-weight:600;color:{g};margin-bottom:8px;">
+                    Menor restrição de latência
+                </div>
+                <div style="font-size:12px;color:{t2};line-height:1.7;">
+                    Processamento batch e pipelines de dados<br>
+                    Treinamento de modelos de machine learning<br>
+                    Jobs noturnos e tarefas agendadas<br>
+                    Geração de relatórios e ETL<br>
+                    Armazenamento e backup de longo prazo
+                </div>
+            </div>
+            <div style="background:{b3};border:1px solid {br};border-radius:6px;
+                        padding:14px 16px;flex:1;min-width:200px;">
+                <div style="font-size:12px;font-weight:600;color:{t};margin-bottom:8px;">
+                    Maior restrição de latência
+                </div>
+                <div style="font-size:12px;color:{t2};line-height:1.7;">
+                    APIs com usuários finais na mesma região<br>
+                    Bancos de dados com queries síncronas frequentes<br>
+                    Sistemas de tempo real e streaming<br>
+                    Aplicações interativas com SLA de latência definido
+                </div>
+            </div>
+            <div style="background:{b3};border:1px solid {br};border-radius:6px;
+                        padding:14px 16px;flex:1;min-width:200px;">
+                <div style="font-size:12px;font-weight:600;color:{t};margin-bottom:8px;">
+                    Arquiteturas híbridas
+                </div>
+                <div style="font-size:12px;color:{t2};line-height:1.7;">
+                    Frontend em região próxima ao usuário e backend de processamento
+                    em região de baixo carbono. Separar camadas com diferentes
+                    requisitos de latência permite otimizar carbono sem sacrificar
+                    a experiência do usuário final.
+                </div>
+            </div>
+        </div>
+        <div style="font-size:11px;color:{t3};margin-top:12px;">
+            A seção Latência de Rede nas abas de análise mostra os valores RTT P50
+            entre regiões com base em medições do CloudPing.co.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # ── Energia renovável ────────────────────────────────────────────────
+    st.markdown(f"""
+    <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;margin-top:4px;">
+        <div style="font-size:13px;font-weight:600;color:{g};text-transform:uppercase;
+                    letter-spacing:0.8px;margin-bottom:10px;font-family:'IBM Plex Sans',sans-serif;">
+            Certificação de energia renovável por região AWS
+        </div>
+        <div style="font-size:13px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;margin-bottom:14px;">
+            A Amazon reportou a compensação de <b style="color:{t}">100% da eletricidade</b> consumida
+            globalmente com fontes renováveis em 2023 e 2024. Esse resultado é calculado pelo
+            <b style="color:{t}">método market-based</b>: a Amazon adquire certificados de energia renovável
+            (RECs e Guarantees of Origin) equivalentes ao volume consumido, mas a eletricidade que
+            chega fisicamente aos data centers pode vir de qualquer fonte do grid local.
+        </div>
+        <div style="font-size:13px;color:{t2};line-height:1.8;font-family:'IBM Plex Sans',sans-serif;margin-bottom:14px;">
+            O GreenArch utiliza o <b style="color:{t}">método location-based</b>, que mede a carbon intensity
+            real do grid elétrico local de cada região. Esse é o método recomendado pelo
+            ISO/IEC 21031:2024 para o cálculo do SCI e explica por que regiões com certificação
+            de 100% renovável, como <b style="color:{t}">us-east-1 (391 gCO₂/kWh)</b>, ainda apresentam
+            SCI elevado — pois o grid local da Virgínia continua sendo majoritariamente termal.
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+            <div style="font-size:12px;color:{t2};min-width:180px;line-height:1.8;">
+                <b style="color:{t}">Américas — certificadas</b><br>
+                us-east-1 · us-east-2 · us-west-1<br>us-west-2 · ca-central-1
+            </div>
+            <div style="font-size:12px;color:{t2};min-width:180px;line-height:1.8;">
+                <b style="color:{t}">Europa — certificadas</b><br>
+                eu-north-1 · eu-west-1 · eu-west-2<br>eu-west-3 · eu-central-1 · eu-south-1
+            </div>
+            <div style="font-size:12px;color:{t2};min-width:180px;line-height:1.8;">
+                <b style="color:{t}">Ásia Pacífico / América do Sul — certificadas</b><br>
+                ap-south-1 · ap-northeast-1<br>ap-northeast-2 · sa-east-1
+            </div>
+            <div style="font-size:12px;color:{t3};min-width:180px;line-height:1.8;">
+                <b style="color:{t}">Sem certificação confirmada</b><br>
+                ap-southeast-1 · ap-southeast-2<br>af-south-1 · me-south-1
+            </div>
+        </div>
+        <div style="font-size:11px;color:{t3};">
+            Fonte: Amazon Sustainability Report 2024 — sustainability.aboutamazon.com/products-services/aws-cloud
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
     # ── Fontes de dados ───────────────────────────────────────────────────
     st.markdown(f"""
     <div style="background:{b3};border:1px solid {br};border-radius:8px;padding:20px 22px;margin-top:4px;">
@@ -615,6 +868,13 @@ with tab1:
                 options=ALL_INSTANCES,
                 index=ALL_INSTANCES.index("c5.4xlarge"),
             )
+            base_region_t1 = st.selectbox(
+                "Região base",
+                options=list(CARBON_INTENSITY_STATIC.keys()),
+                index=list(CARBON_INTENSITY_STATIC.keys()).index("us-east-1"),
+                key="t1_base_region",
+                help="Região onde o workload está hospedado hoje. Usada como referência para calcular latência e delta de SCI."
+            )
             os_type  = "Linux"  # fixo
 
             st.markdown('<div class="ga-section" style="margin-top:12px">Parâmetros de uso</div>',
@@ -643,7 +903,6 @@ with tab1:
             for continent, regs in REGION_GROUPS.items():
                 with st.expander(continent, expanded=(continent == "North America")):
                     for reg in regs:
-                        intensity = CARBON_INTENSITY_STATIC.get(reg, 0)
                         if st.checkbox(reg,
                                        value=reg in DEFAULT_REGIONS,
                                        key=f"t1_{reg}"):
@@ -663,7 +922,7 @@ with tab1:
                 with st.spinner(f"Calculando {len(selected_regions)} cenários..."):
                     result1 = engine.compare(
                         instance_type=instance_type,
-                        region=selected_regions[0],
+                        region=base_region_t1,
                         hours_per_month=hours,
                         cpu_utilization=cpu_util,
                         os=os_type,
@@ -752,7 +1011,7 @@ with tab1:
                              else "mesmo custo")
                 if sci_gain > 0:
                     st.markdown(
-                        f'<div class="ga-banner">Best Pareto alternative: '
+                        f'<div class="ga-banner">Melhor alternativa Pareto: '
                         f'<b>{best_sci["instance_type"]} · {best_sci["region"]}</b> — '
                         f'<b>{sci_gain}% less carbon</b> and {custo_str} vs. base.</div>',
                         unsafe_allow_html=True
@@ -969,6 +1228,40 @@ with tab1:
             fig_bar.update_layout(yaxis_title="gCO₂eq/h")
             st.plotly_chart(fig_bar, use_container_width=True)
 
+            # ── Latência inter-região ──────────────────────────────────
+            st.markdown('<div class="ga-section">Latência de rede</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:{C['bg3']};border:1px solid {C['border']};border-radius:6px;
+                        padding:12px 16px;margin-bottom:8px;font-size:12px;color:{C['text2']};line-height:1.7;">
+                Latência aproximada entre a região base
+                <b style="color:{C['text']}">{base_region_t1}</b> e cada região calculada (RTT P50).
+                Valores altos impactam aplicações com chamadas síncronas ao banco de dados.
+                Fonte: <b>CloudPing.co</b> — medições em tempo real entre regiões AWS.
+            </div>
+            """, unsafe_allow_html=True)
+
+            lat_rows = []
+            for _, row in df1.sort_values("sci_score").iterrows():
+                reg = row["region"]
+                lat = get_latency(base_region_t1, reg)
+                if lat is None:
+                    flag = "—"
+                elif lat < 80:
+                    flag = f"🟢 {lat} ms"
+                elif lat < 150:
+                    flag = f"🟡 {lat} ms"
+                else:
+                    flag = f"🔴 {lat} ms"
+                lat_rows.append({
+                    "Região": reg,
+                    "SCI (gCO₂/h)": f"{row['sci_score']:.4f}",
+                    "Latência da região base": flag,
+                    "Status": row["Status"],
+                })
+            if lat_rows:
+                st.dataframe(pd.DataFrame(lat_rows), use_container_width=True, hide_index=True)
+            st.caption("🟢 < 80 ms · 🟡 80–150 ms · 🔴 > 150 ms")
+
             # PDF export
             st.markdown('<hr>', unsafe_allow_html=True)
             st.markdown('<div class="ga-section">Exportar</div>', unsafe_allow_html=True)
@@ -1166,7 +1459,6 @@ with tab2:
                         unsafe_allow_html=True)
             arch_regions = []
             for reg in list(CARBON_INTENSITY_STATIC.keys()):
-                intensity = CARBON_INTENSITY_STATIC[reg]
                 if st.checkbox(reg,
                                value=reg in DEFAULT_REGIONS,
                                key=f"arch_reg_{reg}"):
@@ -1333,6 +1625,39 @@ with tab2:
                     .background_gradient(subset=["Score"], cmap="RdYlGn"),
                 use_container_width=True, hide_index=True,
             )
+
+            # ── Latência inter-região ──────────────────────────────────
+            st.markdown('<div class="ga-section">Latência de rede</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background:{C['bg3']};border:1px solid {C['border']};border-radius:6px;
+                        padding:12px 16px;margin-bottom:8px;font-size:12px;color:{C['text2']};line-height:1.7;">
+                Latência aproximada entre a região base
+                <b style="color:{C['text']}">{arch_base}</b> e cada região calculada (RTT, P50).
+                Valores altos impactam aplicações com chamadas síncronas frequentes ao banco de dados.
+                Fonte: <b>CloudPing.co</b> — medições em tempo real entre regiões AWS.
+            </div>
+            """, unsafe_allow_html=True)
+
+            arch_lat_rows = []
+            for _, row in arch_df.sort_values("sci_score").iterrows():
+                reg  = row["region"]
+                lat  = get_latency(arch_base, reg)
+                flag = "—" if lat is None else (
+                    f"🟢 {lat} ms" if lat < 80
+                    else f"🟡 {lat} ms" if lat < 150
+                    else f"🔴 {lat} ms"
+                )
+                arch_lat_rows.append({
+                    "Região": reg,
+                    "SCI total (gCO₂/h)": f"{row['sci_score']:.4f}",
+                    "Custo/mês": f"${row['cost_usd_month']:.2f}",
+                    "Latência (ms)": flag,
+                    "Status": row["Status"],
+                })
+            if arch_lat_rows:
+                arch_lat_df = pd.DataFrame(arch_lat_rows)
+                st.dataframe(arch_lat_df, use_container_width=True, hide_index=True)
+            st.caption("🟢 < 80 ms · 🟡 80–150 ms · 🔴 > 150 ms")
 
             # ── Export PDF ────────────────────────────────────────────────
             st.markdown('<div class="ga-section">Exportar</div>', unsafe_allow_html=True)
