@@ -363,3 +363,12 @@ def get_benchmarks():
                 "base_region": data.get("base_region", "us-east-1"),
             })
     return {"benchmarks": benchmarks}
+
+@app.get("/test-pricing")
+def test_pricing():
+    try:
+        from core.data_sources.aws_pricing import get_ec2_ondemand_price
+        result = get_ec2_ondemand_price("t3.medium", "us-east-1", "Linux")
+        return {"status": "ok", "result": result}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
