@@ -21,9 +21,10 @@ Instâncias idênticas em Oregon (`us-west-2`) e Virginia (`us-east-1`) custam o
 - Comparação de arquiteturas completas com EC2, RDS e Lambda
 - Pareto-front custo e carbono para identificar soluções ótimas
 - Índice de Eficiência com ponderação configurável entre custo e carbono
+- Latência de rede inter-região como dado contextual de decisão
 - 4 arquiteturas de benchmark prontas para uso
 - Export de relatório em PDF
-- Dashboard interativo via Streamlit
+- Duas interfaces: dashboard Streamlit e frontend React com API FastAPI
 - Funciona sem conta AWS
 
 ---
@@ -31,9 +32,9 @@ Instâncias idênticas em Oregon (`us-west-2`) e Virginia (`us-east-1`) custam o
 ## Estrutura do projeto
 
 ```
-GreenArch/
-├── core/
-│   ├── sci_calculator.py          # Motor SCI — fórmula ISO/IEC 21031:2024
+TCC-Cloud-GreenOps/
+├── core/                          # Motor de cálculo — compartilhado entre as interfaces
+│   ├── sci_calculator.py          # Fórmula SCI — ISO/IEC 21031:2024
 │   ├── scenario_engine.py         # Comparador de cenários e Pareto-front
 │   ├── architecture_calculator.py # Cálculo de arquiteturas mistas
 │   ├── report_generator.py        # Gerador de relatório PDF
@@ -43,8 +44,12 @@ GreenArch/
 │       ├── lambda_pricing.py      # Preços Lambda via AWS Bulk Pricing API
 │       ├── carbon_intensity.py    # Intensidade de carbono por região AWS
 │       └── instance_energy.py     # Consumo kWh por instância (CCF dataset)
-├── dashboard/
-│   └── app.py                     # Dashboard Streamlit com 3 abas
+├── dashboard_streamlit/
+│   └── app.py                     # Interface Streamlit com 3 abas
+├── api/
+│   └── main.py                    # API FastAPI — expõe o core para o frontend React
+├── frontend/
+│   └── src/                       # Frontend React com Vite
 ├── benchmarks/
 │   └── architectures/             # JSONs das arquiteturas de benchmark
 │       ├── 01_startup_web.json
@@ -58,37 +63,79 @@ GreenArch/
 │   └── run_benchmarks.py          # Roda todos os benchmarks
 ├── tests/
 │   └── test_data_sources.py       # Testes unitários
-├── requirements.txt
+├── requirements.txt               # Dependências Python
 └── README.md
 ```
 
 ---
 
-## Instalação
+## Instalação e execução
+
+### Pré-requisitos
+
+- Python 3.10+
+- Node.js 18+ (apenas para o frontend React)
+
+### 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/jp-abdu/TCC-Cloud-GreenOps.git
 cd TCC-Cloud-GreenOps
+```
+
+### 2. Instalar dependências Python
+
+```bash
 pip install -r requirements.txt
 ```
 
----
-
-## Verificar ambiente
+### 3. Verificar o ambiente
 
 ```bash
 python scripts/check_setup.py
 ```
 
+Se tudo estiver ok, a saída será `Tudo funcionando. Pode rodar o dashboard.`
+
 ---
 
-## Rodar o dashboard
+## Interface Streamlit
+
+A forma mais simples de rodar o projeto:
 
 ```bash
-streamlit run dashboard/app.py
+streamlit run dashboard_streamlit/app.py
 ```
 
 Acesse `http://localhost:8501` no navegador.
+
+---
+
+## Interface React (requer Node.js 18+)
+
+Modo desenvolvimento:
+
+```bash
+# Terminal 1 — API
+uvicorn api.main:app --reload --port 8002
+
+# Terminal 2 — Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse `http://localhost:5173` no navegador.
+
+Build de produção:
+
+```bash
+cd frontend
+npm run build
+npm run preview
+```
+
+Acesse `http://localhost:4173` no navegador.
 
 ---
 
@@ -109,6 +156,19 @@ python scripts/run_benchmarks.py
 
 ---
 
+## Resultados dos benchmarks
+
+Mudança de região reduz o SCI em média **47.1%** sem alterar arquitetura ou código.
+
+| Arquitetura | SCI base (us-east-1) | Melhor SCI | Redução | Melhor região |
+|---|---|---|---|---|
+| Startup Web Simples | 5.9780 gCO₂/h | 3.5340 gCO₂/h | 40.9% | eu-north-1 (+$1.18/mês) |
+| API REST Média Escala | 32.0200 gCO₂/h | 16.5809 gCO₂/h | 48.2% | eu-north-1 (+$32.32/mês) |
+| Microsserviços com Lambda | 24.9169 gCO₂/h | 12.9612 gCO₂/h | 48.0% | eu-north-1 (+$26.18/mês) |
+| Data Warehouse e Analytics | 50.2602 gCO₂/h | 24.5347 gCO₂/h | 51.2% | eu-north-1 (+$43.46/mês) |
+
+---
+
 ## Fontes de dados
 
 Todas públicas e gratuitas, sem autenticação necessária.
@@ -119,7 +179,7 @@ Todas públicas e gratuitas, sem autenticação necessária.
 | Intensidade de carbono por região | Electricity Maps, EPA eGRID, IEA (médias anuais 2022–2023) |
 | Consumo de energia por instância | Cloud Carbon Footprint (ThoughtWorks), benchmarks SPECpower |
 | Carbono embutido do hardware | Boavizta dataset |
-| PUE dos datacenters AWS | AWS Sustainability Report |
+| Latência inter-região | CloudPing.co (RTT P50) |
 | Fórmula SCI | ISO/IEC 21031:2024, Green Software Foundation |
 
 ---
@@ -143,8 +203,8 @@ SCI = (E × I + M) / R
 
 | Parâmetro | Padrão | Observação |
 |---|---|---|
-| Utilização de CPU | 50% | Baseline do Cloud Carbon Footprint para workloads gerais. Configurável pelo usuário. |
-| Horas por mês | 730h | Equivale a operação contínua 24/7. Configurável pelo usuário. |
+| Utilização de CPU | 50% | Baseline do Cloud Carbon Footprint para workloads gerais. Configurável. |
+| Horas por mês | 730h | Operação contínua 24/7. Configurável. |
 | Sistema operacional | Linux | Fixo |
 
 ---
@@ -165,7 +225,18 @@ O GreenArch foi validado subindo a própria ferramenta em uma instância `t3.med
 | SCI com CPU 50% | 4.3237 gCO₂/h | referência | referência |
 | SCI com CPU real (31.6%) | 3.6465 gCO₂/h | recalculado | 15.7% abaixo do baseline |
 
-A diferença de custo foi de 0%, confirmando a precisão da AWS Pricing API. A variação no SCI reflete a diferença entre a utilização de CPU assumida e a medida na prática, o que representa a principal limitação declarada do modelo.
+A diferença de custo foi de 0%, confirmando a precisão da AWS Pricing API. A variação no SCI reflete a diferença entre CPU assumida e medida na prática, a principal limitação declarada do modelo.
+
+---
+
+## Lighthouse (frontend React em produção)
+
+| Categoria | Score |
+|---|---|
+| Performance | 100 |
+| Accessibility | 96 |
+| Best Practices | 100 |
+| SEO | 82 |
 
 ---
 
@@ -174,9 +245,11 @@ A diferença de custo foi de 0%, confirmando a precisão da AWS Pricing API. A v
 - [x] Motor de cálculo SCI (ISO/IEC 21031:2024)
 - [x] Comparador de cenários com Pareto-front
 - [x] Calculadora de arquiteturas com EC2, RDS e Lambda
-- [x] Dashboard interativo com 3 abas (Visão Geral, Instância, Arquitetura)
-- [x] 4 arquiteturas de benchmark
+- [x] Dashboard Streamlit com 3 abas
+- [x] Frontend React com API FastAPI
+- [x] 4 arquiteturas de benchmark com resultados completos
 - [x] Export de relatório PDF
+- [x] Latência inter-região com dados reais do CloudPing.co
 - [x] Validação empírica de custo na AWS
 - [ ] Artigo científico (em desenvolvimento)
 

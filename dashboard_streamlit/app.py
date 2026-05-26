@@ -1,9 +1,7 @@
 """
 dashboard/app.py
 ----------------
-GreenArch Dashboard — redesign minimalista tecnico.
-Dark / Light mode. Verde como acento cirurgico. Sem emojis.
-
+GreenArch Dashboard — redesign minimalista tecnico
 Rodar:
     python -m streamlit run dashboard/app.py
 """
@@ -1267,7 +1265,7 @@ with tab1:
             st.markdown('<div class="ga-section">Exportar</div>', unsafe_allow_html=True)
 
             if st.button("Gerar relatório PDF", key="btn_pdf1"):
-                with st.spinner("Generating report..."):
+                with st.spinner("Gerando relatório..."):
                     try:
                         pdf_bytes = generate_report(result1, label1)
                         st.session_state["pdf1_bytes"] = pdf_bytes
@@ -1527,7 +1525,7 @@ with tab2:
                              else f"${cost_diff:.2f}/mês a mais" if cost_diff > 0
                              else "mesmo custo")
                 st.markdown(
-                    f'<div class="ga-banner">Melhor região para esta arquitetura: <b>{best_a["region"]}</b> — '
+                    f'<div class="ga-banner">Melhor região para esta arquitetura: <b>{best_a["region"]}</b>, '
                     f'<b>{reduction}% menos carbono</b> e {custo_str} vs. {arch_base}.</div>',
                     unsafe_allow_html=True
                 )
