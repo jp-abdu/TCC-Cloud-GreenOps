@@ -1,8 +1,11 @@
 """
 core/data_sources/rds_pricing.py
 ---------------------------------
-Busca precos on-demand de instancias RDS via AWS Pricing Bulk API.
-Mesma abordagem do aws_pricing.py — HTTP GET publico, sem autenticacao.
+Busca preços on-demand de instâncias RDS via AWS Pricing Bulk API.
+Mesma abordagem do aws_pricing.py — HTTP GET público, sem autenticação.
+
+Cache otimizado: salva apenas os preços das instâncias suportadas (~50KB)
+em vez do JSON completo da AWS (~100MB por região).
 
 URL: https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonRDS/current/{region}/index.json
 """
@@ -38,9 +41,20 @@ PRICING_URL = (
     "/offers/v1.0/aws/AmazonRDS/current/{region}/index.json"
 )
 
-# Consumo energetico estimado para RDS (kWh/hora)
-# Baseado em dados do Cloud Carbon Footprint para RDS
-# RDS tem overhead adicional do Multi-AZ e storage I/O
+# Instâncias RDS suportadas pelo GreenArch
+SUPPORTED_RDS_INSTANCES = [
+    "db.t3.micro", "db.t3.small", "db.t3.medium", "db.t3.large",
+    "db.t3.xlarge", "db.t3.2xlarge", "db.t4g.micro", "db.t4g.small",
+    "db.t4g.medium", "db.t4g.large", "db.m5.large", "db.m5.xlarge",
+    "db.m5.2xlarge", "db.m5.4xlarge", "db.m6g.large", "db.m6g.xlarge",
+    "db.m6g.2xlarge", "db.r5.large", "db.r5.xlarge", "db.r5.2xlarge",
+    "db.r6g.large", "db.r6g.xlarge",
+]
+
+SUPPORTED_ENGINES = ["MySQL", "PostgreSQL", "MariaDB"]
+SUPPORTED_DEPLOYMENTS = ["Single-AZ", "Multi-AZ"]
+
+# Consumo energético estimado para RDS (kWh/hora)
 RDS_ENERGY_WATTS = {
     "db.t3.micro":    {"min_watts": 1.0,  "max_watts": 5.0},
     "db.t3.small":    {"min_watts": 1.5,  "max_watts": 8.0},
@@ -72,33 +86,95 @@ DEFAULT_ENERGY_WATTS = {"min_watts": 5.0, "max_watts": 25.0}
 _cache: dict = {}
 
 
+def _cache_dir() -> Path:
+    return Path(__file__).parent.parent.parent / ".cache"
+
+
+def _cache_file(region: str) -> Path:
+    return _cache_dir() / f"rds_pricing_{region}.json"
+
+
+def _extract_prices(data: dict) -> dict:
+    """
+    Extrai do JSON completo apenas os preços das instâncias suportadas.
+    Retorna dict: { "db.t3.medium_MySQL_Single-AZ": 0.068 }
+    """
+    prices = {}
+    supported_set = set(SUPPORTED_RDS_INSTANCES)
+
+    # Mapeia SKU → atributos relevantes
+    sku_map = {}
+    for sku, product in data.get("products", {}).items():
+        attrs = product.get("attributes", {})
+        instance_type = attrs.get("instanceType", "")
+        engine = attrs.get("databaseEngine", "")
+        deployment = attrs.get("deploymentOption", "")
+
+        if (
+            instance_type in supported_set
+            and engine in SUPPORTED_ENGINES
+            and deployment in SUPPORTED_DEPLOYMENTS
+        ):
+            sku_map[sku] = {
+                "instance_type": instance_type,
+                "engine": engine,
+                "deployment": deployment,
+            }
+
+    # Extrai preços on-demand
+    on_demand = data.get("terms", {}).get("OnDemand", {})
+    for sku, info in sku_map.items():
+        sku_terms = on_demand.get(sku, {})
+        price = None
+        for term in sku_terms.values():
+            for dim in term.get("priceDimensions", {}).values():
+                usd = dim.get("pricePerUnit", {}).get("USD")
+                if usd is not None:
+                    price = float(usd)
+                    break
+            if price is not None:
+                break
+
+        if price is not None:
+            key = f"{info['instance_type']}_{info['engine']}_{info['deployment']}"
+            prices[key] = price
+
+    return prices
+
+
 def _fetch_rds_pricing(region: str) -> dict:
+    """
+    Retorna dicionário filtrado de preços RDS para a região.
+    Usa cache leve em disco (~50KB) em vez do JSON completo (~100MB).
+    """
     if region in _cache:
         return _cache[region]
 
-    cache_dir = Path(__file__).parent.parent.parent / ".cache"
-    cache_file = cache_dir / f"rds_pricing_{region}.json"
+    cache_file = _cache_file(region)
 
     if cache_file.exists():
         print(f"[rds_pricing] Carregando cache: {cache_file.name}")
         with open(cache_file) as f:
-            data = json.load(f)
-        _cache[region] = data
-        return data
+            prices = json.load(f)
+        _cache[region] = prices
+        return prices
 
     url = PRICING_URL.format(region=region)
-    print(f"[rds_pricing] Baixando precos RDS para {region}...")
-    response = requests.get(url, timeout=60)
+    print(f"[rds_pricing] Baixando preços RDS para {region}...")
+    response = requests.get(url, timeout=120)
     response.raise_for_status()
     data = response.json()
 
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "w") as f:
-        json.dump(data, f)
-    print(f"[rds_pricing] Cache salvo: {cache_file.name}")
+    # Extrai só os preços necessários
+    prices = _extract_prices(data)
 
-    _cache[region] = data
-    return data
+    _cache_dir().mkdir(parents=True, exist_ok=True)
+    with open(cache_file, "w") as f:
+        json.dump(prices, f)
+    print(f"[rds_pricing] Cache salvo: {cache_file.name} ({len(prices)} entradas)")
+
+    _cache[region] = prices
+    return prices
 
 
 def get_rds_ondemand_price(
@@ -109,66 +185,36 @@ def get_rds_ondemand_price(
     cpu_utilization: float = 0.5,
 ) -> dict:
     """
-    Retorna o preco on-demand e energia de uma instancia RDS.
+    Retorna o preço on-demand e energia de uma instância RDS.
 
-    Parametros:
+    Parâmetros:
         instance_type  : ex: "db.t3.medium", "db.m5.large"
         region         : ex: "us-east-1"
-        engine         : "MySQL", "PostgreSQL", "MariaDB" (padrao: MySQL)
-        multi_az       : True para Multi-AZ (dobra o preco)
-        cpu_utilization: 0.0 a 1.0 (padrao: 0.5)
-
-    Retorna dict com preco, energia e SCI parcial.
+        engine         : "MySQL", "PostgreSQL", "MariaDB" (padrão: MySQL)
+        multi_az       : True para Multi-AZ
+        cpu_utilization: 0.0 a 1.0 (padrão: 0.5)
     """
     if region not in REGION_NAMES:
-        raise ValueError(f"Regiao '{region}' nao reconhecida.")
+        raise ValueError(f"Região '{region}' não reconhecida.")
 
-    data = _fetch_rds_pricing(region)
-
+    prices = _fetch_rds_pricing(region)
     deployment = "Multi-AZ" if multi_az else "Single-AZ"
 
-    target_sku = None
-    for sku, product in data.get("products", {}).items():
-        attrs = product.get("attributes", {})
-        if (
-            attrs.get("instanceType") == instance_type
-            and attrs.get("databaseEngine") == engine
-            and attrs.get("deploymentOption") == deployment
-        ):
-            target_sku = sku
-            break
+    # Tenta a chave exata
+    key = f"{instance_type}_{engine}_{deployment}"
+    price_usd_hour = prices.get(key)
 
-    # Fallback: tenta sem filtro de engine
-    if target_sku is None:
-        for sku, product in data.get("products", {}).items():
-            attrs = product.get("attributes", {})
-            if (
-                attrs.get("instanceType") == instance_type
-                and attrs.get("deploymentOption") == deployment
-            ):
-                target_sku = sku
+    # Fallback: qualquer engine disponível para essa instância e deployment
+    if price_usd_hour is None:
+        for k, v in prices.items():
+            if k.startswith(f"{instance_type}_") and k.endswith(f"_{deployment}"):
+                price_usd_hour = v
                 break
-
-    if target_sku is None:
-        raise ValueError(
-            f"RDS '{instance_type}' ({engine}, {deployment}) nao encontrado em '{region}'."
-        )
-
-    on_demand = data.get("terms", {}).get("OnDemand", {})
-    sku_terms = on_demand.get(target_sku, {})
-    price_usd_hour = None
-
-    for term in sku_terms.values():
-        for dim in term.get("priceDimensions", {}).values():
-            usd = dim.get("pricePerUnit", {}).get("USD")
-            if usd is not None:
-                price_usd_hour = float(usd)
-                break
-        if price_usd_hour is not None:
-            break
 
     if price_usd_hour is None:
-        raise ValueError(f"Preco nao encontrado para {instance_type} em {region}.")
+        raise ValueError(
+            f"RDS '{instance_type}' ({engine}, {deployment}) não encontrado em '{region}'."
+        )
 
     # Calcula energia
     energy_data = RDS_ENERGY_WATTS.get(instance_type, DEFAULT_ENERGY_WATTS)
