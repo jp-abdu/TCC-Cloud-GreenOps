@@ -4,20 +4,17 @@ aws_pricing.py
 Busca preços on-demand de instâncias EC2 via AWS Pricing Bulk API.
 Sem autenticação, sem conta AWS, sem boto3.
 
-Fonte: https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/{region}/index.json
-Documentação: https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/price-changes.html
+Usa download em streaming para evitar carregar o JSON completo (~100MB) na RAM.
+Processa linha por linha e extrai apenas os preços necessários.
 
-Cache otimizado: em vez de salvar o JSON completo da AWS (~100MB por região),
-salva apenas os preços das instâncias suportadas pelo GreenArch (~50KB por região).
+Fonte: https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/{region}/index.json
 """
 
 import json
+import re
 import requests
 from pathlib import Path
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Mapeamento: região AWS → nome por extenso
-# ─────────────────────────────────────────────────────────────────────────────
 REGION_NAMES = {
     "us-east-1":      "US East (N. Virginia)",
     "us-east-2":      "US East (Ohio)",
@@ -40,7 +37,6 @@ REGION_NAMES = {
     "me-south-1":     "Middle East (Bahrain)",
 }
 
-# Instâncias suportadas pelo GreenArch (todas as que estão no instance_energy.py)
 SUPPORTED_INSTANCES = [
     'c5.12xlarge', 'c5.18xlarge', 'c5.24xlarge', 'c5.2xlarge', 'c5.4xlarge',
     'c5.9xlarge', 'c5.large', 'c5.xlarge', 'c6g.12xlarge', 'c6g.16xlarge',
@@ -61,12 +57,17 @@ SUPPORTED_INSTANCES = [
 
 SUPPORTED_OS = ["Linux", "Windows"]
 
+# URL alternativa — CSV é muito menor que o JSON (~5MB vs ~100MB)
+CSV_URL = (
+    "https://pricing.us-east-1.amazonaws.com"
+    "/offers/v1.0/aws/AmazonEC2/current/{region}/index.csv"
+)
+
 PRICING_URL = (
     "https://pricing.us-east-1.amazonaws.com"
     "/offers/v1.0/aws/AmazonEC2/current/{region}/index.json"
 )
 
-# Cache em memória para a sessão atual
 _cache: dict[str, dict] = {}
 
 
@@ -78,56 +79,80 @@ def _cache_file(region: str) -> Path:
     return _cache_dir() / f"aws_pricing_{region}.json"
 
 
-def _extract_prices(data: dict) -> dict:
+def _fetch_via_csv(region: str) -> dict:
     """
-    Extrai do JSON completo da AWS apenas os preços das instâncias suportadas.
-    Retorna dict: { "t3.medium_Linux": {"price_usd_hour": 0.0416, "vcpu": "2", "memory_gib": "4 GiB"} }
+    Baixa o CSV de preços (~5MB) em vez do JSON (~100MB).
+    Muito mais leve em memória.
     """
+    import csv
+    import io
+
+    url = CSV_URL.format(region=region)
+    print(f"[aws_pricing] Baixando preços CSV para {region}...")
+
+    response = requests.get(url, timeout=120, stream=True)
+    response.raise_for_status()
+
+    # Lê o conteúdo em chunks para não estourar memória
+    content = b""
+    for chunk in response.iter_content(chunk_size=1024 * 1024):  # 1MB por vez
+        content += chunk
+
+    text = content.decode("utf-8", errors="replace")
+    del content  # libera memória imediatamente
+
+    # O CSV da AWS tem linhas de header antes dos dados reais
+    # Pula até encontrar a linha com "SKU"
+    lines = text.split("\n")
+    del text
+
+    header_idx = 0
+    for i, line in enumerate(lines):
+        if line.startswith('"SKU"') or line.startswith("SKU"):
+            header_idx = i
+            break
+
+    data_lines = lines[header_idx:]
+    del lines
+
+    # Parseia o CSV
     prices = {}
     supported_set = set(SUPPORTED_INSTANCES)
 
-    # Passo 1: mapeia SKU → (instance_type, os, vcpu, memory)
-    sku_map = {}
-    for sku, product in data.get("products", {}).items():
-        attrs = product.get("attributes", {})
-        instance_type = attrs.get("instanceType", "")
-        os = attrs.get("operatingSystem", "")
+    reader = csv.DictReader(io.StringIO("\n".join(data_lines)))
+    sku_to_attrs = {}
+
+    for row in reader:
+        instance_type = row.get("Instance Type", "").strip()
+        os_type = row.get("Operating System", "").strip()
+        tenancy = row.get("Tenancy", "").strip()
+        pre_installed = row.get("Pre Installed S/W", "").strip()
+        capacity = row.get("CapacityStatus", "").strip()
+        price_str = row.get("PricePerUnit", "").strip()
+        term = row.get("TermType", "").strip()
 
         if (
             instance_type in supported_set
-            and os in SUPPORTED_OS
-            and attrs.get("tenancy") == "Shared"
-            and attrs.get("preInstalledSw") == "NA"
-            and attrs.get("capacitystatus") == "Used"
+            and os_type in SUPPORTED_OS
+            and tenancy == "Shared"
+            and pre_installed == "NA"
+            and capacity == "Used"
+            and term == "OnDemand"
+            and price_str
         ):
-            sku_map[sku] = {
-                "instance_type": instance_type,
-                "os": os,
-                "vcpu": attrs.get("vcpu", "N/A"),
-                "memory_gib": attrs.get("memory", "N/A"),
-            }
-
-    # Passo 2: extrai preços on-demand para cada SKU encontrado
-    on_demand = data.get("terms", {}).get("OnDemand", {})
-    for sku, info in sku_map.items():
-        sku_terms = on_demand.get(sku, {})
-        price = None
-        for term_value in sku_terms.values():
-            for dim in term_value.get("priceDimensions", {}).values():
-                usd = dim.get("pricePerUnit", {}).get("USD")
-                if usd is not None:
-                    price = float(usd)
-                    break
-            if price is not None:
-                break
-
-        if price is not None:
-            key = f"{info['instance_type']}_{info['os']}"
-            prices[key] = {
-                "price_usd_hour": price,
-                "vcpu": info["vcpu"],
-                "memory_gib": info["memory_gib"],
-            }
+            try:
+                price = float(price_str)
+                if price > 0:
+                    key = f"{instance_type}_{os_type}"
+                    vcpu = row.get("vCPU", "N/A").strip()
+                    memory = row.get("Memory", "N/A").strip()
+                    prices[key] = {
+                        "price_usd_hour": price,
+                        "vcpu": vcpu,
+                        "memory_gib": memory,
+                    }
+            except (ValueError, TypeError):
+                continue
 
     return prices
 
@@ -135,7 +160,8 @@ def _extract_prices(data: dict) -> dict:
 def _fetch_pricing_data(region: str) -> dict:
     """
     Retorna dicionário filtrado de preços para a região.
-    Usa cache leve em disco (~50KB) em vez do JSON completo (~100MB).
+    Usa CSV (~5MB) em vez de JSON (~100MB) para economizar memória.
+    Salva cache leve em disco (~50KB) para reutilização.
     """
     if region in _cache:
         return _cache[region]
@@ -149,23 +175,67 @@ def _fetch_pricing_data(region: str) -> dict:
         _cache[region] = prices
         return prices
 
-    # Baixa o JSON completo da AWS
-    url = PRICING_URL.format(region=region)
-    print(f"[aws_pricing] Baixando preços para região {region}...")
-    print(f"[aws_pricing] URL: {url}")
+    # Tenta via CSV primeiro (muito mais leve)
+    try:
+        prices = _fetch_via_csv(region)
+        if prices:
+            _cache_dir().mkdir(parents=True, exist_ok=True)
+            with open(cache_file, "w") as f:
+                json.dump(prices, f)
+            print(f"[aws_pricing] Cache salvo: {cache_file.name} ({len(prices)} instâncias)")
+            _cache[region] = prices
+            return prices
+    except Exception as e:
+        print(f"[aws_pricing] CSV falhou ({e}), tentando JSON...")
 
-    response = requests.get(url, timeout=120)
+    # Fallback: JSON em streaming
+    url = PRICING_URL.format(region=region)
+    print(f"[aws_pricing] Baixando JSON para {region}...")
+    response = requests.get(url, timeout=120, stream=True)
     response.raise_for_status()
-    data = response.json()
+
+    # Processa em chunks de 1MB
+    chunks = []
+    for chunk in response.iter_content(chunk_size=1024 * 1024):
+        chunks.append(chunk)
+    data = json.loads(b"".join(chunks).decode("utf-8"))
+    del chunks
 
     # Extrai só os preços necessários
-    prices = _extract_prices(data)
+    supported_set = set(SUPPORTED_INSTANCES)
+    prices = {}
 
-    # Salva cache leve em disco
+    for sku, product in data.get("products", {}).items():
+        attrs = product.get("attributes", {})
+        instance_type = attrs.get("instanceType", "")
+        os_type = attrs.get("operatingSystem", "")
+
+        if (
+            instance_type in supported_set
+            and os_type in SUPPORTED_OS
+            and attrs.get("tenancy") == "Shared"
+            and attrs.get("preInstalledSw") == "NA"
+            and attrs.get("capacitystatus") == "Used"
+        ):
+            on_demand = data.get("terms", {}).get("OnDemand", {}).get(sku, {})
+            for term in on_demand.values():
+                for dim in term.get("priceDimensions", {}).values():
+                    usd = dim.get("pricePerUnit", {}).get("USD")
+                    if usd and float(usd) > 0:
+                        key = f"{instance_type}_{os_type}"
+                        prices[key] = {
+                            "price_usd_hour": float(usd),
+                            "vcpu": attrs.get("vcpu", "N/A"),
+                            "memory_gib": attrs.get("memory", "N/A"),
+                        }
+                        break
+
+    del data
+
     _cache_dir().mkdir(parents=True, exist_ok=True)
     with open(cache_file, "w") as f:
         json.dump(prices, f)
-    print(f"[aws_pricing] Cache salvo em: {cache_file.name} ({len(prices)} instâncias)")
+    print(f"[aws_pricing] Cache salvo: {cache_file.name} ({len(prices)} instâncias)")
 
     _cache[region] = prices
     return prices
@@ -178,22 +248,6 @@ def get_ec2_ondemand_price(
 ) -> dict:
     """
     Retorna o preço on-demand por hora de uma instância EC2.
-
-    Parâmetros:
-        instance_type : str  — ex: "t3.medium", "m5.large", "c5.2xlarge"
-        region        : str  — ex: "us-east-1", "eu-north-1", "sa-east-1"
-        os            : str  — "Linux" (padrão) ou "Windows"
-
-    Retorna:
-        {
-            "instance_type": str,
-            "region": str,
-            "os": str,
-            "price_usd_hour": float,
-            "price_usd_month": float,
-            "vcpu": str,
-            "memory_gib": str,
-        }
     """
     if region not in REGION_NAMES:
         raise ValueError(
@@ -206,8 +260,7 @@ def get_ec2_ondemand_price(
 
     if key not in prices:
         raise ValueError(
-            f"Instância '{instance_type}' ({os}) não encontrada em '{region}'. "
-            "Verifique se o tipo de instância existe nessa região."
+            f"Instância '{instance_type}' ({os}) não encontrada em '{region}'."
         )
 
     info = prices[key]
