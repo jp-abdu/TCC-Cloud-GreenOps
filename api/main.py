@@ -33,7 +33,12 @@ app = FastAPI(
 # CORS — permite o frontend React (localhost:5173) acessar a API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://tcc-cloud-green-ops.vercel.app",
+    "https://*.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
