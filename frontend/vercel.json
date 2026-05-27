@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://greenarch-api.onrender.com/:path*"
+      "destination": "https://jpabdu-greenarch-api.hf.space/:path*"
     }
   ]
 }
