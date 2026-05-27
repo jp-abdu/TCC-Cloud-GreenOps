@@ -254,7 +254,11 @@ A diferença de custo foi de 0%, confirmando a precisão da AWS Pricing API. A v
 - [ ] Artigo científico (em desenvolvimento)
 
 ---
+## Demo online
 
+- **Frontend:** https://tcc-cloud-green-ops.vercel.app
+- **API:** https://jpabdu-greenarch-api.hf.space/docs
+  
 ## Referências
 
 - Green Software Foundation. *SCI Specification*. ISO/IEC 21031:2024.
